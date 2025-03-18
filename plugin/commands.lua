@@ -1,18 +1,18 @@
 vim.api.nvim_create_user_command('Spotify', function()
   local auth = require 'smm.auth.oauth'
-  local playback = require 'smm.ui.playback'
+  local controller = require 'smm.controller.controller'
 
-  if playback.win == nil then
+  if controller.is_syncing_playback == false then
     local auth_info
     local new_auth_info = auth.ensure_valid_token(auth_info)
     if new_auth_info then
       auth_info = new_auth_info
-      playback.show_window()
+      controller.start_playback(auth_info)
     else
       vim.notify('Unable to authenticate', vim.log.levels.ERROR)
     end
   else
-    playback.cleanup()
+    print 'testing'
   end
 end, {
   desc = 'Open spotify window',

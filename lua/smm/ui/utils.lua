@@ -18,14 +18,15 @@ end
 function M.format_playback_info(playback_info)
   local playback_table = {}
 
-  if not playback_info or playback_info == '' then
+  print(vim.inspect(playback_info))
+  if not playback_info or playback_info == '' or playback_info == {} then
     table.insert(playback_table, 'No track currently playing')
   else
     table.insert(playback_table, 'Artist: ' .. playback_info['artist'])
     table.insert(playback_table, 'Track: ' .. playback_info['track'])
     table.insert(playback_table, 'Current: ' .. M.format_time_from_ms(playback_info['time']))
     table.insert(playback_table, 'Duration: ' .. M.format_time_from_ms(playback_info['duration']))
-    local progress = math.floor((playback_info['current_ms'] / playback_info['duration_ms']) * 20)
+    local progress = math.floor((playback_info['time'] / playback_info['duration']) * 20)
     local bar = '[' .. string.rep('=', progress) .. string.rep(' ', 20 - progress) .. ']'
     table.insert(playback_table, bar)
   end
