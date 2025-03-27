@@ -1,144 +1,96 @@
 local M = {}
 
----@class Timer
+----------------------------------------------------------------
+---The rationale behind this module is that we need some timer
+---that does not get stopped while the plugin is running. This timer
+---helps with multiple use cases:
+---1. Keeping track of song timestamp
+---2. Keeps in sync from the spotify servers
+---3. Due to the timer being able to be controlled from another spotify source,
+---   this timer needs to be running all the time, and then only update if is_updating = true.
+---   This is because Spotify Web API has no ability to register a webhook, therefore,
+---   we need to query the API every X seconds.
+----------------------------------------------------------------
+
+---@alias SyncData { is_playing: boolean, current_pos: integer }
+
+---@class SpotifyTimer
 ---@field current_pos integer The current position in milliseconds
----@field initial_pos integer Starting position when timer was last reset
----@field is_playing boolean Whether the timer is currently active
----@field is_updating boolean Whether or not to send updates to the control
----@field start_time integer When the timer was last started/reset
----@field last_sync_time integer When the timer was last synced
+---@field update_interval integer How often the timer should update
+---@field is_updating boolean Whether or not the timer should send updates.
+---@field send_update fun(current_pos: integer) Where to send the updated timestamp
+---@field sync_interval integer time in ms between each sync
+---@field is_syncing boolean whether we are currently syncing. Important so we don't issue multiple syncs at once.
+---@field sync fun():SyncData Method to run, provided by the caller to sync with Spotify servers
+---@field last_sync_time integer When the last sync time occurred
 ---@field timer uv_timer_t The underlying timer object
----@field on_sync function Callback for sync events
----@field on_update function Callback for update events
 
-local UPDATE_INTERVAL = 100
-local SYNC_INTERVAL = 5000
-
----@param opts? table
----@return Timer
+---@param opts table
+---@return SpotifyTimer
 function M.create_timer(opts)
   return {
-    initial_pos = opts and opts.initial_pos or 0,
-    current_pos = opts and opts.initial_pos or 0,
-    is_playing = false,
+    current_pos = opts.current_pos and opts.current_pos or 0,
+    update_interval = opts.update_interval and opts.update_interval or 1000,
     is_updating = false,
-    start_time = vim.uv.now(),
-    last_sync_time = vim.uv.now(),
+    send_update = opts.send_update and opts.send_update or nil,
+    sync_interval = opts.sync_interval and opts.sync_interval or 5000,
+    is_syncing = false,
+    sync = opts.sync and opts.sync or nil,
+    last_sync_time = 0,
     timer = vim.uv.new_timer(),
-    on_sync = opts and opts.on_sync or nil,
-    on_update = opts and opts.on_update or nil,
   }
 end
 
----@param timer Timer
----@param should_force boolean? Force sync regardless of interval
-local function attempt_sync(timer, should_force)
-  local current_time = vim.uv.now()
-
-  if should_force or (current_time - timer.last_sync_time) >= SYNC_INTERVAL then
-    if timer.on_sync then
-      timer.on_sync(function(playing)
-        -- After sync completion, update our timestamps
-        timer.start_time = current_time
-        timer.last_sync_time = current_time
-        timer.is_updating = playing
-      end)
-    end
-  end
-end
-
----@param timer Timer
+---@param timer SpotifyTimer
 function M.start(timer)
-  if timer.is_playing then
-    vim.notify('Timer is already running', vim.log.levels.INFO)
-    return
-  end
-
-  timer.is_playing = true
-  timer.start_time = vim.uv.now()
-
   timer.timer:start(
     0,
-    UPDATE_INTERVAL,
+    timer.update_interval,
     vim.schedule_wrap(function()
-      if not timer.is_playing then
-        return
-      end
+      if not vim.is_syncing then
+        if vim.uv.now() - timer.last_sync_time >= timer.sync_interval then
+          timer.is_syncing = true
+          local sync_data = timer.sync()
+          timer.last_sync_time = vim.uv.now()
+          timer.current_pos = sync_data.current_pos
+          timer.is_updating = sync_data.is_playing
+          timer.is_syncing = false
+          print(vim.inspect(sync_data))
+          if sync_data == nil then
+            timer.timer:stop()
+          end
+        elseif timer.is_updating then
+          timer.current_pos = timer.current_pos + vim.uv.now()
+        end
 
-      -- Update Position
-      if timer.is_updating then
-        local current_time = vim.uv.now()
-        local elapsed = current_time - timer.start_time
-        timer.current_pos = timer.initial_pos + elapsed
-
-        -- Call update callback if provided
-        if timer.is_updating and timer.on_update then
-          timer.on_update(timer.current_pos)
+        if timer.send_update then
+          timer.send_update(timer.current_pos)
         end
       end
-
-      --- Attempt sync if needed
-      attempt_sync(timer)
     end)
   )
 end
 
----@param timer Timer
-function M.stop(timer)
-  if not timer.is_playing then
-    vim.notify('Timer is already stopped', vim.log.levels.INFO)
-    return
-  end
-
-  timer.is_playing = false
-  timer.is_updating = false
-  timer.timer:stop()
-end
-
----@param timer Timer
+---@param timer SpotifyTimer
 function M.pause(timer)
-  if not timer.is_updating then
-    vim.schedule(function()
-      vim.notify('Timer is already paused', vim.log.levels.INFO)
-    end)
-  end
-
   timer.is_updating = false
 end
 
----@param timer Timer
+---@param timer SpotifyTimer
 function M.resume(timer)
-  if timer.is_updating then
-    vim.notify('Timer is already running', vim.log.levels.INFO)
-  end
-
   timer.is_updating = true
-  timer.start_time = vim.uv.now()
-  timer.initial_pos = timer.current_pos
 end
 
----@param timer Timer
-function M.reset(timer, new_position)
-  timer.initial_pos = new_position or 0
-  timer.current_pos = timer.initial_pos
-  timer.start_time = vim.uv.now()
-  timer.last_sync_time = timer.start_time
+---@param timer SpotifyTimer
+function M.reset(timer)
+  timer.current_pos = 0
 end
 
----@param timer Timer
-function M.force_sync(timer)
-  attempt_sync(timer, true)
-end
-
----@param timer Timer
-function M.cleanup(timer)
-  if timer.timer then
-    timer.timer:stop()
-    timer.timer:close()
-    timer.timer = nil
-  end
-  timer.is_playing = false
-  timer.is_updating = false
+---@param timer SpotifyTimer
+function M.close(timer)
+  M.pause(timer)
+  M.reset(timer)
+  timer.timer:close()
 end
 
 return M

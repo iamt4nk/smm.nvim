@@ -2,7 +2,14 @@ local api = require 'smm.api.api'
 
 local M = {}
 
----@alias Playback_Info { id: string, device_id: string|nil, artist: string, track: string, duration_ms: integer, current_ms: integer, playing: boolean }
+--- Fetches the inital playback data from Spotify API
+---@param auth_info Auth_Info
+---@param callback fun(playback_info) Callback(playback_data) to run after fetching data
+function M.get_current_playing(auth_info, callback)
+  api.get_playback_state(auth_info, function(playback_data, _, _)
+    callback(playback_data)
+  end)
+end
 
 ---@param playback_data table
 ---@return Playback_Info|nil
@@ -22,14 +29,19 @@ function M.extract_playback_info(playback_data)
   }
 end
 
---- Fetches the inital playback data from Spotify API
----@param auth_info Auth_Info
----@param callback fun(playback_data) Callback(success, playback_data) to run after fetching data
-function M.fetch_initial_playback_data(auth_info, callback)
-  api.get_playback_state(auth_info, function(playback_data, _, _)
-    local playback_info = M.extract_playback_info(playback_data)
-    callback(playback_info)
-  end)
+---@param playback_info Playback_Info|string|nil
+---@return WindowInfo|nil
+function M.create_playback_data(playback_info)
+  local playback_state = playback_info
+      and playback_info ~= ''
+      and {
+        artist = playback_info['artist'],
+        track = playback_info['track'],
+        duration = playback_info['duration_ms'],
+        time = playback_info['current_ms'],
+      }
+    or nil
+  return playback_state
 end
 
 return M

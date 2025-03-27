@@ -2,8 +2,6 @@ local utils = require 'smm.ui.utils'
 
 local M = {}
 
----@alias WindowInfo { artist: string|nil, track: string, time: integer|nil, duration: integer|nil }
-
 ---@type integer|nil
 local buf = nil
 
@@ -19,14 +17,9 @@ function M.show_window()
 end
 
 --- Updates the window information
----@param playback_info table|nil
+---@param playback_info WindowInfo|nil
 function M.update_window_info(playback_info)
-  if playback_info then
-    M.info = utils.create_playback_data(playback_info)
-  end
-
-  local window_info = utils.format_playback_info(M.info)
-
+  local window_info = utils.format_playback_info(playback_info)
   M.update_window(window_info)
 end
 

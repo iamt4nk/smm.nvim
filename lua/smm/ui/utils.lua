@@ -1,5 +1,3 @@
-local api = require 'smm.api.api'
-
 local M = {}
 
 ---@param time integer
@@ -19,7 +17,8 @@ function M.format_playback_info(playback_info)
   local playback_table = {}
 
   print(vim.inspect(playback_info))
-  if not playback_info or playback_info == '' or playback_info == {} then
+
+  if not playback_info or playback_info == '' or (type(playback_info) == 'table' and next(playback_info) == nil) then
     table.insert(playback_table, 'No track currently playing')
   else
     table.insert(playback_table, 'Artist: ' .. playback_info['artist'])
@@ -32,46 +31,6 @@ function M.format_playback_info(playback_info)
   end
 
   return playback_table
-end
-
----@param playback_info table|string|nil
----@return WindowInfo|nil
-function M.create_playback_data(playback_info)
-  local playback_state = playback_info
-      and playback_info ~= ''
-      and playback_info['item']
-      and {
-        artist = playback_info['item']['artists'][1]['name'],
-        track = playback_info['item']['name'],
-        duration = playback_info['item']['duration_ms'],
-        time = playback_info['progress_ms'],
-      }
-    or nil
-  return playback_state
-end
-
----@param auth_info Auth_Info
----@param callback function
----@return nil
-function M.get_current_playing_async(auth_info, callback)
-  api.get_playback_state_async(auth_info, function(playback_state_table)
-    if not playback_state_table or not playback_state_table['item'] then
-      callback(nil)
-      return
-    end
-
-    ---@type Playback_Info
-    local playback_state = {
-      id = playback_state_table['item']['id'],
-      artist = playback_state_table['item']['artists'][1]['name'],
-      track = playback_state_table['item']['name'],
-      duration_ms = playback_state_table['item']['duration_ms'],
-      current_ms = playback_state_table['progress_ms'],
-      playing = playback_state_table['is_playing'],
-    }
-
-    callback(playback_state)
-  end)
 end
 
 return M

@@ -1,0 +1,2 @@
+---@alias Playback_Info { id: string, device_id: string|nil, artist: string, track: string, duration_ms: integer, current_ms: integer, playing: boolean }
+---@alias WindowInfo { artist: string|nil, track: string, time: integer|nil, duration: integer|nil }

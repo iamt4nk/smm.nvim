@@ -2,6 +2,7 @@ local playback_utils = require 'smm.controller.playback_utils'
 local timer = require 'smm.timer.timer'
 local api = require 'smm.api.api'
 local playback = require 'smm.ui.playback'
+local ui_utils = require 'smm.ui.utils'
 
 local M = {}
 
@@ -11,25 +12,28 @@ M.playback_info = nil
 ---@type Auth_Info|nil
 M.auth_info = nil
 
----@type Timer|nil
+---@type SpotifyTimer|nil
 M.timer = nil
 
 ---@type boolean
 M.playback_window_is_showing = false
 
----@type boolean
-M.is_syncing_playback = false
+---@return SyncData
+local function handle_timer_sync()
+  ---@type SyncData
+  local sync_data
 
----@param done_callback fun(playing: boolean) Callback to run when completes. Sends boolean on success status
-local function handle_timer_sync(done_callback)
-  if M.is_syncing_playback then
-    done_callback(M.playback_info and M.playback_info.playing or false)
-    return
-  end
-
-  M.sync_playback_data(function(is_playing)
-    done_callback(is_playing)
+  api.get_playback_state(M.auth_info, function(playback_data, _, status_code)
+    if status_code == 200 then
+      local new_playback_info = playback_utils.extract_playback_info(playback_data)
+      sync_data.current_pos = new_playback_info and new_playback_info.current_ms and new_playback_info.current_ms or 0
+      sync_data.is_playing = new_playback_info and new_playback_info.playing and new_playback_info.playing or false
+    end
   end)
+
+  print(vim.inspect(sync_data))
+
+  return sync_data
 end
 
 ---@param current_ms integer Current position in milliseconds
@@ -40,67 +44,26 @@ local function handle_timer_update(current_ms)
 
   M.playback_info.current_ms = current_ms
 
-  if current_ms >= M.playback_info.duration_ms then
-    timer.force_sync(M.timer)
-    return
-  end
-
   vim.schedule(function()
-    local window_lines = playback_utils.extract_playback_info(M.playback_info)
-    playback.update_window(window_lines)
+    local playback_data = ui_utils.create_playback_data(M.playback_info)
+    local playback_info = ui_utils.format_playback_info(playback_data)
+    playback.update_window(playback_info)
   end)
 end
 
 function M.setup_timer()
   M.timer = timer.create_timer {
-    initial_pos = M.playback_info.current_ms,
-    on_sync = function(done_callback)
-      handle_timer_sync(done_callback)
-    end,
-    on_update = function(done_callback)
-      handle_timer_update(done_callback)
-    end,
+    current_pos = M.playback_info.current_ms,
+    update_interval = 100,
+    send_update = handle_timer_update,
+    sync = handle_timer_sync,
   }
 
   timer.start(M.timer)
 
   if M.playback_info.playing then
     timer.resume(M.timer)
-  else
-    timer.pause(M.timer)
   end
-end
-
----@param callback fun(bool) whether playback is currently running
-function M.sync_playback_data(callback)
-  M.is_syncing_playback = true
-
-  api.get_playback_state(M.auth_info, function(playback_data, _, status_code)
-    M.is_syncing_playback = false
-    if status_code == 200 then
-      local new_playback_info = playback_utils.extract_playback_info(playback_data)
-
-      if new_playback_info then
-        -- Track ID changed?
-        local track_changed = not M.playback_info or M.playback_info.id ~= new_playback_info.id
-        if track_changed then
-          M.playback_info = new_playback_info
-        end
-
-        -- Reset timer with the correct position from the API
-        if M.timer then
-          timer.reset(M.timer, M.playback_info.current_ms)
-        end
-      end
-
-      -- Update UI
-      vim.schedule(function()
-        playback.update_window_info(playback_data)
-      end)
-    end
-
-    callback(M.playback_info and M.playback_info.playing or false)
-  end)
 end
 
 --- @param auth_info Auth_Info
@@ -112,12 +75,13 @@ function M.start_playback(auth_info)
   M.playback_window_is_showing = true
 
   M.is_syncing_playback = true
-  playback_utils.fetch_initial_playback_data(auth_info, function(playback_data)
+  playback_utils.get_current_playing(auth_info, function(playback_data)
     M.playback_info = playback_data
-    print(vim.inspect(playback_data))
 
     vim.schedule(function()
-      playback.update_window_info(playback_data)
+      local playback_info = playback_utils.extract_playback_info(playback_data)
+      local window_info = playback_utils.create_playback_data(playback_info)
+      playback.update_window_info(window_info)
     end)
 
     M.setup_timer()
