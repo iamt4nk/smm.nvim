@@ -1,4 +1,4 @@
-# Spotify Media Manager - Neovim
+# Spotify Music Manager - Neovim
 
 SMM.nvim is a simple, minimal implementation for Spotify that allows users (currently) to view their current song. More to be added later.
 
