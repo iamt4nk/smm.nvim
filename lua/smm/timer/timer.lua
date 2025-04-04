@@ -57,6 +57,7 @@ function M.start(timer)
               if sync_data then
                 timer.current_pos = sync_data.current_pos
                 timer.is_updating = sync_data.is_playing
+                timer.send_update(timer.current_pos)
               else
                 M.pause(timer)
                 timer.send_update(nil)

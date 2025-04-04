@@ -2,7 +2,6 @@ local playback_utils = require 'smm.controller.playback_utils'
 local timer = require 'smm.timer.timer'
 local api = require 'smm.api.api'
 local playback = require 'smm.ui.playback'
-local ui_utils = require 'smm.ui.utils'
 
 local M = {}
 
@@ -18,14 +17,14 @@ M.timer = nil
 ---@type boolean
 M.playback_window_is_showing = false
 
----@param callback fun(sync_data: SyncData) call back to the timer with the appropriate data
+---@param callback fun(sync_data: SyncData|nil) call back to the timer with the appropriate data
 local function handle_timer_sync(callback)
   api.get_playback_state(M.auth_info, function(playback_data, _, status_code)
     if status_code == 200 or status_code == 204 then
       local playback_info = playback_utils.extract_playback_info(playback_data)
       M.playback_info = playback_info
 
-      if playback_info and playback_info.current_ms and playback_info.playing then
+      if playback_info and playback_info.current_ms and playback_info.playing ~= nil then
         callback {
           current_pos = playback_info.current_ms,
           is_playing = playback_info.playing,

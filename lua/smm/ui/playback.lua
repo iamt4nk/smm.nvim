@@ -20,48 +20,49 @@ end
 ---@param playback_info WindowInfo|nil
 function M.update_window_info(playback_info)
   local window_info = utils.format_playback_info(playback_info)
-  print(vim.inspect(window_info))
   M.update_window(window_info)
 end
 
 --- Sets the lines in the window
 ---@param lines table
 function M.update_window(lines)
-  -- Setup window
-  local width = 40
-  local height = #lines
+  vim.schedule(function()
+    -- Setup window
+    local width = 40
+    local height = #lines
 
-  local win_height = vim.o.lines
-  local win_width = vim.o.columns
+    local win_height = vim.o.lines
+    local win_width = vim.o.columns
 
-  local opts = {
-    relative = 'editor',
-    width = width,
-    height = height,
-    col = win_width - width - 2,
-    row = win_height - height - 4,
-    anchor = 'NW',
-    style = 'minimal',
-    border = 'rounded',
-  }
+    local opts = {
+      relative = 'editor',
+      width = width,
+      height = height,
+      col = win_width - width - 2,
+      row = win_height - height - 4,
+      anchor = 'NW',
+      style = 'minimal',
+      border = 'rounded',
+    }
 
-  if not buf or not vim.api.nvim_buf_is_valid(buf) then
-    buf = vim.api.nvim_create_buf(false, true)
-    vim.bo[buf].buftype = 'nofile'
-    vim.bo[buf].bufhidden = 'hide'
-    vim.bo[buf].swapfile = false
-  end
+    if not buf or not vim.api.nvim_buf_is_valid(buf) then
+      buf = vim.api.nvim_create_buf(false, true)
+      vim.bo[buf].buftype = 'nofile'
+      vim.bo[buf].bufhidden = 'hide'
+      vim.bo[buf].swapfile = false
+    end
 
-  if not M.win or not vim.api.nvim_win_is_valid(M.win) then
-    M.win = vim.api.nvim_open_win(buf, false, opts)
-    -- Set window options
-    vim.wo[M.win].winblend = 15
-    vim.wo[M.win].wrap = false
-  else
-    vim.api.nvim_win_set_config(M.win, opts)
-  end
+    if not M.win or not vim.api.nvim_win_is_valid(M.win) then
+      M.win = vim.api.nvim_open_win(buf, false, opts)
+      -- Set window options
+      vim.wo[M.win].winblend = 15
+      vim.wo[M.win].wrap = false
+    else
+      vim.api.nvim_win_set_config(M.win, opts)
+    end
 
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  end)
 end
 
 --- Stops the playback window and removes all underlying resources
