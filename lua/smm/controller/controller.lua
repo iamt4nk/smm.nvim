@@ -25,10 +25,10 @@ local function handle_timer_sync(callback)
       local playback_info = playback_utils.extract_playback_info(playback_data)
       M.playback_info = playback_info
 
-      if playback_info then
+      if playback_info and playback_info.current_ms and playback_info.playing then
         callback {
-          current_pos = playback_info.current_ms or 0,
-          is_playing = playback_info.playing or false,
+          current_pos = playback_info.current_ms,
+          is_playing = playback_info.playing,
         }
       else
         callback(nil)
@@ -42,8 +42,13 @@ local function handle_timer_sync(callback)
   end)
 end
 
----@param current_ms integer Current position in milliseconds
+---@param current_ms integer|nil Current position in milliseconds
 local function handle_timer_update(current_ms)
+  if not current_ms then
+    playback.update_window_info(nil)
+    return
+  end
+
   if not M.playback_info then
     return
   end

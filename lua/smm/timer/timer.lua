@@ -18,7 +18,7 @@ local M = {}
 ---@field current_pos integer The current position in milliseconds
 ---@field update_interval integer How often the timer should update
 ---@field is_updating boolean Whether or not the timer should send updates.
----@field send_update fun(current_pos: integer) Where to send the updated timestamp
+---@field send_update fun(current_pos: integer|nil) Where to send the updated timestamp
 ---@field sync_interval integer time in ms between each sync
 ---@field is_syncing boolean whether we are currently syncing. Important so we don't issue multiple syncs at once.
 ---@field sync fun(callback: fun(sync_data: SyncData)) Method to run, provided by the caller to sync with Spotify servers
@@ -59,6 +59,7 @@ function M.start(timer)
                 timer.is_updating = sync_data.is_playing
               else
                 M.pause(timer)
+                timer.send_update(nil)
               end
             end)
           end
