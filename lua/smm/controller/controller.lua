@@ -18,22 +18,28 @@ M.timer = nil
 ---@type boolean
 M.playback_window_is_showing = false
 
----@return SyncData
-local function handle_timer_sync()
-  ---@type SyncData
-  local sync_data
-
+---@param callback fun(sync_data: SyncData) call back to the timer with the appropriate data
+local function handle_timer_sync(callback)
   api.get_playback_state(M.auth_info, function(playback_data, _, status_code)
-    if status_code == 200 then
-      local new_playback_info = playback_utils.extract_playback_info(playback_data)
-      sync_data.current_pos = new_playback_info and new_playback_info.current_ms and new_playback_info.current_ms or 0
-      sync_data.is_playing = new_playback_info and new_playback_info.playing and new_playback_info.playing or false
+    if status_code == 200 or status_code == 204 then
+      local playback_info = playback_utils.extract_playback_info(playback_data)
+      M.playback_info = playback_info
+
+      if playback_info then
+        callback {
+          current_pos = playback_info.current_ms or 0,
+          is_playing = playback_info.playing or false,
+        }
+      else
+        callback(nil)
+      end
+    else
+      vim.schedule(function()
+        vim.notify('Error: getting playback state failed:\nStatus Code: ' .. status_code, vim.log.levels.ERROR)
+        callback(nil)
+      end)
     end
   end)
-
-  print(vim.inspect(sync_data))
-
-  return sync_data
 end
 
 ---@param current_ms integer Current position in milliseconds
@@ -45,15 +51,14 @@ local function handle_timer_update(current_ms)
   M.playback_info.current_ms = current_ms
 
   vim.schedule(function()
-    local playback_data = ui_utils.create_playback_data(M.playback_info)
-    local playback_info = ui_utils.format_playback_info(playback_data)
-    playback.update_window(playback_info)
+    local playback_info = playback_utils.create_playback_data(M.playback_info)
+    playback.update_window_info(playback_info)
   end)
 end
 
 function M.setup_timer()
   M.timer = timer.create_timer {
-    current_pos = M.playback_info.current_ms,
+    current_pos = M.playback_info and M.playback_info.current_ms or 0,
     update_interval = 100,
     send_update = handle_timer_update,
     sync = handle_timer_sync,
@@ -61,7 +66,7 @@ function M.setup_timer()
 
   timer.start(M.timer)
 
-  if M.playback_info.playing then
+  if M.playback and M.playback_info.playing then
     timer.resume(M.timer)
   end
 end
@@ -74,19 +79,7 @@ function M.start_playback(auth_info)
   playback.show_window()
   M.playback_window_is_showing = true
 
-  M.is_syncing_playback = true
-  playback_utils.get_current_playing(auth_info, function(playback_data)
-    M.playback_info = playback_data
-
-    vim.schedule(function()
-      local playback_info = playback_utils.extract_playback_info(playback_data)
-      local window_info = playback_utils.create_playback_data(playback_info)
-      playback.update_window_info(window_info)
-    end)
-
-    M.setup_timer()
-    M.is_syncing_playback = false
-  end)
+  M.setup_timer()
 end
 
 return M

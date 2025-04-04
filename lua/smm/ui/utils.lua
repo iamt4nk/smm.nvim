@@ -16,8 +16,6 @@ end
 function M.format_playback_info(playback_info)
   local playback_table = {}
 
-  print(vim.inspect(playback_info))
-
   if not playback_info or playback_info == '' or (type(playback_info) == 'table' and next(playback_info) == nil) then
     table.insert(playback_table, 'No track currently playing')
   else

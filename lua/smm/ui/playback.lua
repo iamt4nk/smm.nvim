@@ -20,6 +20,7 @@ end
 ---@param playback_info WindowInfo|nil
 function M.update_window_info(playback_info)
   local window_info = utils.format_playback_info(playback_info)
+  print(vim.inspect(window_info))
   M.update_window(window_info)
 end
 

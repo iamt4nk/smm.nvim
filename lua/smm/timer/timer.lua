@@ -21,7 +21,7 @@ local M = {}
 ---@field send_update fun(current_pos: integer) Where to send the updated timestamp
 ---@field sync_interval integer time in ms between each sync
 ---@field is_syncing boolean whether we are currently syncing. Important so we don't issue multiple syncs at once.
----@field sync fun():SyncData Method to run, provided by the caller to sync with Spotify servers
+---@field sync fun(callback: fun(sync_data: SyncData)) Method to run, provided by the caller to sync with Spotify servers
 ---@field last_sync_time integer When the last sync time occurred
 ---@field timer uv_timer_t The underlying timer object
 
@@ -47,22 +47,27 @@ function M.start(timer)
     0,
     timer.update_interval,
     vim.schedule_wrap(function()
-      if not vim.is_syncing then
-        if vim.uv.now() - timer.last_sync_time >= timer.sync_interval then
-          timer.is_syncing = true
-          local sync_data = timer.sync()
-          timer.last_sync_time = vim.uv.now()
-          timer.current_pos = sync_data.current_pos
-          timer.is_updating = sync_data.is_playing
-          timer.is_syncing = false
-          print(vim.inspect(sync_data))
-          if sync_data == nil then
-            timer.timer:stop()
+      if not timer.is_syncing then
+        local current_time = vim.loop.now()
+        if current_time - timer.last_sync_time >= timer.sync_interval then
+          if timer.sync then
+            timer.is_syncing = true
+            timer.last_sync_time = current_time
+            timer.sync(function(sync_data)
+              if sync_data then
+                timer.current_pos = sync_data.current_pos
+                timer.is_updating = sync_data.is_playing
+              else
+                M.pause(timer)
+              end
+            end)
           end
-        elseif timer.is_updating then
-          timer.current_pos = timer.current_pos + vim.uv.now()
+          timer.is_syncing = false
         end
+      end
 
+      if timer.is_updating then
+        timer.current_pos = timer.current_pos + timer.update_interval
         if timer.send_update then
           timer.send_update(timer.current_pos)
         end
