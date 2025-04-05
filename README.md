@@ -10,7 +10,7 @@ Installation:
 LazyVim:  
 ```lua
 {
-    'iamtank/smm.nvim',
+    'iamt4nk/smm.nvim',
     dependencies = {
         'nvim-lua/plenary.nvim'
     },
