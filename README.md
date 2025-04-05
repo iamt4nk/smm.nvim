@@ -30,3 +30,5 @@ This will initiate a few different procedures.
 1. Generate an authentication token.
 1. Start a timer that sends API requests to Spotify servers.  
    **NOTE 2**: Spotify Apps that use the [Spotify Web API](https://developer.spotify.com/documentation/web-api) do not allow you to specify a webhook. This pretty much means that the only thing we can do on the plugin is send requests every so often to sync with the servers.
+
+To stop the playback, simply run the same command.

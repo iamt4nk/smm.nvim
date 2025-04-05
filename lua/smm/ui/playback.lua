@@ -76,10 +76,6 @@ function M.close_playback_window()
     vim.api.nvim_buf_delete(buf, { force = true })
     buf = nil
   end
-
-  if M.update_timer then
-    M.stop_window_updates()
-  end
 end
 
 --- Cleanup
