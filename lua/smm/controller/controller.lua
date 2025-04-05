@@ -10,7 +10,7 @@ M.playback_info = nil
 
 ---@type Auth_Info|nil
 M.auth_info = nil
-.
+
 ---@type SpotifyTimer|nil
 M.timer = nil
 
