@@ -10,7 +10,7 @@ M.playback_info = nil
 
 ---@type Auth_Info|nil
 M.auth_info = nil
-
+.
 ---@type SpotifyTimer|nil
 M.timer = nil
 
@@ -75,8 +75,8 @@ function M.setup_timer()
   end
 end
 
---- @param auth_info Auth_Info
---- Creates the playback window, using the current playback_info state
+---@param auth_info Auth_Info
+---Creates the playback window, using the current playback_info state
 function M.start_playback(auth_info)
   M.auth_info = auth_info
 
@@ -84,6 +84,15 @@ function M.start_playback(auth_info)
   M.playback_window_is_showing = true
 
   M.setup_timer()
+end
+
+---Hides window and stops playback
+function M.cleanup()
+  M.auth_info = nil
+  playback.close_playback_window()
+  playback.cleanup()
+  timer.pause(M.timer)
+  timer.close(M.timer)
 end
 
 return M
