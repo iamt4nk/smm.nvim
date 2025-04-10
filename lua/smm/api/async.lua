@@ -140,7 +140,7 @@ function M.put(url, body, headers, callback)
     end
   end
 
-  curl.post(url, {
+  curl.put(url, {
     headers = request_headers,
     body = body_data,
     callback = function(response)

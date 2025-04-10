@@ -11,6 +11,8 @@ function M.get_current_playing(auth_info, callback)
   end)
 end
 
+--- Sends a request to pause a track
+
 ---@param playback_data table
 ---@return Playback_Info|nil
 function M.extract_playback_info(playback_data)

@@ -17,6 +17,9 @@ M.timer = nil
 ---@type boolean
 M.playback_window_is_showing = false
 
+--- Local functions for timer object
+--------------------------------------------------------------------------------
+
 ---@param callback fun(sync_data: SyncData|nil) call back to the timer with the appropriate data
 local function handle_timer_sync(callback)
   api.get_playback_state(M.auth_info, function(playback_data, _, status_code)
@@ -60,6 +63,41 @@ local function handle_timer_update(current_ms)
   end)
 end
 
+local function handle_timer_pause()
+  api.pause_track(M.auth_info, function(response_body, _, status_code)
+    if status_code == 200 or status_code == 204 then
+      timer.pause(M.timer)
+    else
+      vim.schedule(function()
+        vim.notify('Error: unable to pause current track:\nStatus Code: ' .. status_code .. '\nError: ' .. response_body, vim.log.levels.ERROR)
+      end)
+    end
+  end)
+end
+
+---@param position_ms integer|nil
+local function handle_timer_resume(position_ms)
+  if position_ms == nil then
+    position_ms = 0
+  end
+
+  api.resume_track(position_ms, M.auth_info, function(response_body, _, status_code)
+    if status_code == 200 or status_code == 204 then
+      timer.resume(M.timer)
+    else
+      vim.schedule(function()
+        vim.notify(
+          'Error: unable to resume current track at position: ' .. position_ms .. '\nError: ' .. response_body .. '\nStatus code: ' .. status_code,
+          vim.log.levels.ERROR
+        )
+      end)
+    end
+  end)
+end
+
+--- End Local Functions
+--------------------------------------------------------------------------------
+
 function M.setup_timer()
   M.timer = timer.create_timer {
     current_pos = M.playback_info and M.playback_info.current_ms or 0,
@@ -93,6 +131,18 @@ function M.cleanup()
   playback.cleanup()
   timer.pause(M.timer)
   timer.close(M.timer)
+end
+
+---Pauses the currently playing track
+function M.pause_track()
+  handle_timer_pause()
+end
+
+--- Resumes the currently playing track
+function M.resume_track()
+  local current_pos = M.timer.current_pos
+
+  handle_timer_resume(current_pos)
 end
 
 return M

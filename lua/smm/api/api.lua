@@ -76,14 +76,14 @@ end
 ---@return nil
 function M.pause_track(auth_info, callback)
   if not auth_info or not auth_info.access_token or not auth_info.token_type then
-    error 'You must supply an access_token and token type to run pause_track'
+    error 'You must supply an access_token and token type to run get_playback_state'
   end
 
   local headers = {
     ['Authorization'] = auth_info.token_type .. ' ' .. auth_info.access_token,
   }
 
-  http.put('https://api.spotify.com/v1/me/player/pause', headers, nil, function(response_body, response_headers, status_code)
+  http.put('https://api.spotify.com/v1/me/player/pause', {}, headers, function(response_body, response_headers, status_code)
     -- Handle 401 Unauthorized by refreshing the token
     if status_code == 401 and auth_info.refresh_token then
       auth_info = auth.refresh_access_token(auth_info.refresh_token)
@@ -96,7 +96,7 @@ function M.pause_track(auth_info, callback)
       local new_headers = {
         ['Authorization'] = auth_info.token_type .. ' ' .. auth_info.access_token,
       }
-      http.put('https://api.spotify.com/v1/me/player/queue', new_headers, nil, callback)
+      http.put('https://api.spotify.com/v1/me/player/queue', {}, new_headers, callback)
       return
     end
 
@@ -134,7 +134,7 @@ function M.resume_track(position_ms, auth_info, callback)
         ['Authorization'] = auth_info.token_type .. ' ' .. auth_info.access_token,
       }
 
-      http.put('https://api.spotify.com/v1/me/player/queue', new_headers, nil, callback)
+      http.put('https://api.spotify.com/v1/me/player/queue', body, new_headers, callback)
       return
     end
     callback(response_body, response_headers, status_code)

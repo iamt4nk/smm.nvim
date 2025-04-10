@@ -106,7 +106,9 @@ function M.refresh_access_token(refresh_token)
   }
 
   if code == 400 then
-    vim.notify('Unable to authenticate. Returned status code: ' .. code, vim.log.levels.ERROR)
+    vim.schedule(function()
+      vim.notify('Unable to authenticate. Returned status code: ' .. code, vim.log.levels.ERROR)
+    end)
     return nil
   end
 
