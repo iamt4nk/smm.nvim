@@ -21,7 +21,9 @@ function M.save_refresh_token(refresh_token)
 
   local file = io.open(get_token_path(), 'w')
   if not file then
-    vim.notify('Failed to save refresh token', vim.log.levels.ERROR)
+    vim.schedule(function()
+      vim.notify('Failed to save refresh token', vim.log.levels.ERROR)
+    end)
     return false
   end
 

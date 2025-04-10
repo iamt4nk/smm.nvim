@@ -19,9 +19,9 @@ end, {
 })
 
 vim.api.nvim_create_user_command('SpotifyPause', function()
-  require('smm.ui.old_playback').pause_track()
+  require('smm.controller.controller').pause_track()
 end, { desc = 'Pauses the currently playing song' })
 
 vim.api.nvim_create_user_command('SpotifyResume', function()
-  require('smm.ui.old_playback').resume_track()
+  require('smm.controller.controller').resume_track()
 end, { desc = 'Resumes the currently playing song' })

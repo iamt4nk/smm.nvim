@@ -97,7 +97,7 @@ end
 function M.close(timer)
   M.pause(timer)
   M.reset(timer)
-  timer.timer:close()
+  M.timer:close()
 end
 
 return M
