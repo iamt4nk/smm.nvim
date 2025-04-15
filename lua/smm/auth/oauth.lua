@@ -17,7 +17,7 @@ local function get_oauth_url()
   local query_table = {
     response_type = 'code',
     client_id = client_id,
-    scope = 'user-read-playback-state user-read-currently-playing user-modify-playback-state',
+    scope = 'user-read-playback-state user-read-currently-playing user-modify-playback-state user-read-private',
     code_challenge_method = 'S256',
     code_challenge = code_challenge,
     redirect_uri = 'http://localhost:8080/callback',
@@ -67,10 +67,8 @@ function M.initiate_oauth_flow()
   local done = false
 
   vim.schedule(function()
-    vim.notify('Creating socket server', vim.log.levels.INFO)
     local code = sock.create_server(port, state)
     if code then
-      vim.notify('Getting access token', vim.log.levels.INFO)
       auth_info = get_access_token(code, code_verifier, redirect_uri)
     end
     done = true
