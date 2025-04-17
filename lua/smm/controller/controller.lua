@@ -114,7 +114,6 @@ local function get_user_subscription_status(callback)
       end)
     end
   end)
-  callback(false)
 end
 
 --- End Local Functions
@@ -170,7 +169,6 @@ end
 function M.get_profile_type()
   get_user_subscription_status(function(is_premium)
     vim.schedule(function()
-      vim.notify(tostring(is_premium), vim.log.levels.INFO)
       if not is_premium then
         notification.show_free_user_notice {
           top = 1,
