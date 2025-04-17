@@ -31,4 +31,31 @@ function M.format_playback_info(playback_info)
   return playback_table
 end
 
+---@param lines table
+---@param top integer
+---@param right integer
+---@param bottom integer
+---@param left integer
+---@return table
+function M.add_window_padding(lines, top, right, bottom, left)
+  local padded_lines = {}
+
+  -- Add padding to top
+  for _ = 1, top do
+    table.insert(padded_lines, '')
+  end
+
+  -- Add all content with padding on left/right
+  for _, line in ipairs(lines) do
+    table.insert(padded_lines, string.rep(' ', left) .. line .. string.rep(' ', right))
+  end
+
+  -- Add bottom padding
+  for _ = 1, bottom do
+    table.insert(padded_lines, '')
+  end
+
+  return padded_lines
+end
+
 return M

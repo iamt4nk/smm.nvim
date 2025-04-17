@@ -2,6 +2,7 @@ local playback_utils = require 'smm.controller.playback_utils'
 local timer = require 'smm.timer.timer'
 local api = require 'smm.api.api'
 local playback = require 'smm.ui.playback'
+local notification = require 'smm.ui.notification'
 
 local M = {}
 
@@ -95,6 +96,26 @@ local function handle_timer_resume(position_ms)
   end)
 end
 
+---@param callback fun(is_premium: boolean)
+local function get_user_subscription_status(callback)
+  api.get_user_profile(M.auth_info, function(response_body, _, status_code)
+    if status_code == 200 or status_code == 204 then
+      if response_body['product'] == 'premium' then
+        callback(true)
+        return
+      else
+        callback(false)
+        return
+      end
+    else
+      vim.schedule(function()
+        vim.notify('Error: unable to get user profile. Error: ' .. response_body .. '\nStatus code: ' .. status_code, vim.log.levels.ERROR)
+        callback(false)
+      end)
+    end
+  end)
+end
+
 --- End Local Functions
 --------------------------------------------------------------------------------
 
@@ -143,6 +164,21 @@ function M.resume_track()
   local current_pos = M.timer.current_pos
 
   handle_timer_resume(current_pos)
+end
+
+function M.get_profile_type()
+  get_user_subscription_status(function(is_premium)
+    vim.schedule(function()
+      if not is_premium then
+        notification.show_free_user_notice {
+          top = 1,
+          bottom = 1,
+          left = 3,
+          right = 3,
+        }
+      end
+    end)
+  end)
 end
 
 return M

@@ -8,6 +8,7 @@ vim.api.nvim_create_user_command('Spotify', function()
     if new_auth_info then
       auth_info = new_auth_info
       controller.start_playback(auth_info)
+      require('smm.controller.controller').get_profile_type()
     else
       vim.notify('Unable to authenticate', vim.log.levels.ERROR)
     end
