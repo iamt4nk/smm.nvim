@@ -64,9 +64,7 @@ function M.create_server(port, state)
     response = [[HTTP/1.1 400 Bad Request 
 Content-Type: text/html 
 
-<html>
-<body>]] .. get_server_bad_request_csrf() .. [[
-</body></html>]]
+]] .. get_server_bad_request_csrf()
 
     client:send(response)
     client:close()
@@ -78,18 +76,12 @@ Content-Type: text/html
     response = [[HTTP/1.1 200 OK
 Content-Type: text/html
 
-<html>
-<body>]] .. get_server_ok_not_authenticated() .. [[
-</body>
-</html>]]
+]] .. get_server_ok_not_authenticated()
   else
     response = [[HTTP/1.1 200 OK
 Content-Type: text/html
 
-<html>
-<body> ]] .. get_server_ok_authenticated() .. [[
-</body>
-</html>]]
+]] .. get_server_ok_authenticated()
   end
 
   client:send(response)
