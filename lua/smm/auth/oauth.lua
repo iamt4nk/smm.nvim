@@ -1,6 +1,6 @@
 local sock = require 'smm.auth.socket_server'
 local os_utils = require 'smm.auth.os'
-local utils = require 'smm.auth.utils'
+local utils = require 'smm.api.api_utils'
 local requests = require 'smm.auth.requests'
 local token = require 'smm.auth.token'
 
