@@ -147,11 +147,10 @@ end
 
 ---Hides window and stops playback
 function M.cleanup()
-  M.auth_info = nil
-  playback.close_playback_window()
   playback.cleanup()
-  timer.pause(M.timer)
   timer.close(M.timer)
+  M.auth_info = nil
+  M.playback_window_is_showing = false
 end
 
 ---Pauses the currently playing track

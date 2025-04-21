@@ -1,4 +1,5 @@
 local has_plenary, curl = pcall(require, 'plenary.curl')
+local utils = require 'smm.api.api_utils'
 
 if not has_plenary then
   error 'Plenary.nvim is required for async HTTP. Install it as a dependency with your plugin manager'
@@ -6,32 +7,13 @@ end
 
 local M = {}
 
----@param query_table table
----@return string
-local function encode_query_params(query_table)
-  if not query_table then
-    return ''
-  end
-
-  local query_parts = {}
-  for k, v in pairs(query_table) do
-    table.insert(query_parts, k .. '=' .. vim.uri_encode(tostring(v)))
-  end
-
-  if #query_parts == 0 then
-    return ''
-  else
-    return '?' .. table.concat(query_parts, '&')
-  end
-end
-
 --- Make a GET Request
 ---@param url string The base URL
 ---@param headers table|nil Optional headers
 ---@param query_table table|nil Optional query parameters
 ---@param callback function(response_body, response_headers, status_code) Callback Function
 function M.get(url, headers, query_table, callback)
-  local query = query_table and encode_query_params(query_table)
+  local query = query_table and utils.encode_query_params(query_table)
 
   curl.get(query and (url .. query) or url, {
     headers = headers or {},
@@ -73,10 +55,10 @@ end
 
 --- Make a POST request
 ---@param url string The base URL
----@param body table|string Request body (will be encoded as JSON if table)
 ---@param headers table|nil Optional headers
+---@param body table|string Request body (will be encoded as JSON if table)
 ---@param callback function(response_body, response_headers, status_code) Callback function
-function M.post(url, body, headers, callback)
+function M.post(url, headers, body, callback)
   local request_headers = headers or {}
   local body_data = body
 
@@ -118,10 +100,10 @@ end
 
 --- Make a PUT request
 ---@param url string The base URL
----@param body table|string|nil Request body (will be encoded as JSON if table)
 ---@param headers table|nil Optional headers
+---@param body table|string|nil Request body (will be encoded as JSON if table)
 ---@param callback function(response_body, response_headers, status_code) Callback function
-function M.put(url, body, headers, callback)
+function M.put(url, headers, body, callback)
   local request_headers = headers or {}
   local body_data = body
 

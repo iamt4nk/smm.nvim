@@ -1,33 +1,12 @@
 local has_plenary, curl = pcall(require, 'plenary.curl')
+local utils = require 'smm.api.api_utils'
+require 'smm.api.models'
 
 if not has_plenary then
   error 'Plenary.nvim is required for HTTP requests. Install it as a dependency with your plugin manager'
 end
 
-local utils = require 'smm.auth.utils'
-
----@alias Request_Info { base_url: string, endpoint: string, query_table: table|nil, body_table: table|nil, headers: table|nil }
-
 local M = {}
-
----@param query_table table
----@return string
-local function encode_query_params(query_table)
-  if not query_table then
-    return ''
-  end
-
-  local query_parts = {}
-  for k, v in pairs(query_table) do
-    table.insert(query_parts, k .. '=' .. vim.uri_encode(tostring(v)))
-  end
-
-  if #query_parts == 0 then
-    return ''
-  else
-    return '?' .. table.concat(query_parts, '&')
-  end
-end
 
 ---@param response table The curl response
 ---@return table, table, integer
@@ -58,7 +37,7 @@ end
 ---@param request_info Request_Info
 ---@return table, table, integer
 function M.send_get_request(request_info)
-  local query = request_info['query_table'] and encode_query_params(request_info['query_table']) or ''
+  local query = request_info['query_table'] and utils.encode_query_params(request_info['query_table']) or ''
   local url = request_info['base_url'] .. '/' .. request_info['endpoint'] .. query
   local headers = request_info['headers'] or {}
 
@@ -99,7 +78,7 @@ end
 ---@param request_info Request_Info
 ---@return table, table, integer
 function M.send_put_request(request_info)
-  local query = request_info['query_table'] and encode_query_params(request_info['query_table']) or ''
+  local query = request_info['query_table'] and utils.encode_query_params(request_info['query_table']) or ''
   local url = request_info['base_url'] .. '/' .. request_info['endpoint'] .. query
 
   local headers = request_info['headers'] or {}

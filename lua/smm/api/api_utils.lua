@@ -1,5 +1,24 @@
 local M = {}
 
+---@param query_table table
+---@return string
+function M.encode_query_params(query_table)
+  if not query_table then
+    return ''
+  end
+
+  local query_parts = {}
+  for k, v in pairs(query_table) do
+    table.insert(query_parts, k .. '=' .. vim.uri_encode(tostring(v)))
+  end
+
+  if #query_parts == 0 then
+    return ''
+  else
+    return '?' .. table.concat(query_parts, '&')
+  end
+end
+
 function M.stringify_table_as_kv(query_table)
   local query_string = ''
   for key, value in pairs(query_table) do
