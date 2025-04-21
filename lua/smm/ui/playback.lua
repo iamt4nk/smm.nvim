@@ -27,12 +27,17 @@ end
 ---@param lines table
 function M.update_window(lines)
   vim.schedule(function()
+    lines = utils.add_window_padding(lines, 1, 2, 1, 2)
+
     -- Setup window
     local width = 40
     local height = #lines
 
     local win_height = vim.o.lines
     local win_width = vim.o.columns
+
+    -- Define a highlight group for the Spotify green border
+    vim.api.nvim_set_hl(0, 'SpotifyGreen', { fg = '#1ED760' })
 
     local opts = {
       relative = 'editor',
@@ -43,6 +48,8 @@ function M.update_window(lines)
       anchor = 'NW',
       style = 'minimal',
       border = 'rounded',
+      title = ' Spotify ',
+      title_pos = 'left',
     }
 
     if not buf or not vim.api.nvim_buf_is_valid(buf) then
@@ -60,6 +67,8 @@ function M.update_window(lines)
     else
       vim.api.nvim_win_set_config(M.win, opts)
     end
+
+    vim.api.nvim_win_set_option(M.win, 'winhighlight', 'FloatTitle:SpotifyGreen,FloatBorder:SpotifyGreen')
 
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   end)

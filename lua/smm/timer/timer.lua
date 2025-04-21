@@ -1,3 +1,5 @@
+require 'smm.timer.models'
+
 local M = {}
 
 ----------------------------------------------------------------
@@ -11,19 +13,6 @@ local M = {}
 ---   This is because Spotify Web API has no ability to register a webhook, therefore,
 ---   we need to query the API every X seconds.
 ----------------------------------------------------------------
-
----@alias SyncData { is_playing: boolean, current_pos: integer }
-
----@class SpotifyTimer
----@field current_pos integer The current position in milliseconds
----@field update_interval integer How often the timer should update
----@field is_updating boolean Whether or not the timer should send updates.
----@field send_update fun(current_pos: integer|nil) Where to send the updated timestamp
----@field sync_interval integer time in ms between each sync
----@field is_syncing boolean whether we are currently syncing. Important so we don't issue multiple syncs at once.
----@field sync fun(callback: fun(sync_data: SyncData)) Method to run, provided by the caller to sync with Spotify servers
----@field last_sync_time integer When the last sync time occurred
----@field timer uv_timer_t The underlying timer object
 
 ---@param opts table
 ---@return SpotifyTimer
@@ -97,7 +86,7 @@ end
 function M.close(timer)
   M.pause(timer)
   M.reset(timer)
-  M.timer:close()
+  timer.timer:stop()
 end
 
 return M
