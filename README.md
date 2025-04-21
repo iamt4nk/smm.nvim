@@ -8,7 +8,9 @@
 
 SMM.nvim is a simple, minimal implementation for Spotify that allows users (currently) to view and control their current Spotify playback.
 
-_**NOTE**_: This plugin does NOT stream any mu,sic itself, but rather it controls the current spotify player (regardless of device).
+_**NOTE**_: This plugin does NOT stream any music itself, but rather it controls the current spotify player (regardless of device).
+
+![SMM Demo](./assets/smm_demo.gif)
 
 Installation:
 - Use the following to install this plugin:  
