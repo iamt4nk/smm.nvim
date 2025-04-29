@@ -1,1 +1,0 @@
----@alias Request_Info { base_url: string, endpoint: string, query_table: table|nil, body_table: table|nil, headers: table|nil }

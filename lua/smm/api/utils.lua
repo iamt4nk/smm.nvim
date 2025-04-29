@@ -1,0 +1,94 @@
+local M = {}
+
+---Returns a string of queries typically used in URLs in the format "key1=value1&key2=value2"
+---@param query_table table
+---@return string
+function M.encode_table_as_query(query_table)
+  if not query_table or #query_table == 0 then
+    return ''
+  end
+
+  local query_parts = {}
+  for key, value in pairs(query_table) do
+    table.insert(query_parts, key .. '=' .. vim.uri_encode(tostring(value)))
+  end
+
+  return table.concat(query_parts, '&')
+end
+
+---Although this function simply runs vim.json.encode(), it is in place in case any changes need to be made in the future.
+---@param json_table table
+---@return string
+function M.encode_table_as_json(json_table)
+  return vim.json.encode(json_table)
+end
+
+---Although this function simply runs vim.json.decode(), it is in place in case any changes need to be made in the future.
+---@param json_string string
+---@return string
+function M.decode_table_as_json(json_string)
+  return vim.json.decode(json_string)
+end
+
+---Converts list of response headers to a K;V table
+---@param response_headers table
+---@return table
+function M.convert_headers_list_to_map(response_headers)
+  local table_response_headers = {}
+  for _, header in ipairs(response_headers) do
+    local key, value = header:match '([^:]+):%s*(.*)'
+
+    if key and value then
+      key = key:match '^%s+(.-)%s*$'
+      table_response_headers[key] = value
+    end
+  end
+
+  return table_response_headers
+end
+
+---Returns a random string of given length.
+---@param length integer
+---@return string
+function M.generate_random_string(length)
+  local character_set = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  local random_string = ''
+
+  for _ = 1, length do
+    local random_index = math.random(1, #character_set)
+    local character = character_set:sub(random_index, random_index) -- Lua has a really weird way of saying string[index]
+    random_string = random_string .. character
+  end
+
+  return random_string
+end
+
+---Returns the SHA256Sum of the given data in byte format
+---@param data string Data to get sha256sum from
+---@return string
+function M.get_sha256_sum(data)
+  local hash_hex = vim.fn.sha256(data)
+
+  --- Convert hex string to bytes
+  local hash_bytes = {}
+  for i = 1, #hash_hex, 2 do
+    local byte = tonumber(hash_hex:sub(i, i + 1), 16)
+    hash_bytes:insert(string.char(byte))
+  end
+
+  return table.concat(hash_bytes)
+end
+
+---Returns data encoded as base64. Strips out all '=', '+', and '/'
+---@param bytedata string
+---@return string
+function M.get_b64_encoded(bytedata)
+  local base64_data = vim.base64.encode(bytedata)
+
+  base64_data = base64_data:gsub('%=', '')
+  base64_data = base64_data:gsub('%+', '-')
+  base64_data = base64_data:gsub('%/', '_')
+  return base64_data
+end
+
+return M
