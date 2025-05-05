@@ -18,8 +18,9 @@ local M = {}
 ---@param opts Get_Request
 ---@param callback function(response_body, response_headers, status_code) Callback Function
 function M.get(opts, callback)
-  local query = opts.query and utils.encode_query_params(opts.query)
+  local query = utils.encode_table_as_query(opts.query)
 
+  print 'Sending GET Request'
   curl.get(query and (opts.url .. '?' .. query) or opts.url, {
     headers = opts.headers or {},
     callback = function(response)
@@ -35,9 +36,9 @@ function M.get(opts, callback)
       if
         response_body
         and response_body ~= ''
-        and table_response_headers
-        and table_response_headers['content-type']
-        and table_response_headers['content-type']:match 'application/json'
+        and response_headers
+        and response_headers['content-type']
+        and response_headers['content-type']:match 'application/json'
       then
         local ok, parsed = pcall(utils.encode_table_as_json, response_body)
         if ok then
@@ -56,7 +57,7 @@ end
 function M.post(opts, callback)
   local request_headers = opts.headers or {}
   local body_data = opts.body
-  local query = opts.query and utils.encode_query_params(opts.query)
+  local query = opts.query and utils.encode_table_as_query(opts.query)
 
   -- Handle body encoding based on content type
   if type(body_data) == 'table' then
@@ -105,7 +106,7 @@ end
 function M.put(opts, callback)
   local request_headers = opts.headers or {}
   local body_data = opts.body
-  local query = opts.query and utils.encode_query_params(opts.query)
+  local query = opts.query and utils.encode_table_as_query(opts.query)
 
   -- Handle body encoding based on content type
   if type(body_data) == 'table' then
