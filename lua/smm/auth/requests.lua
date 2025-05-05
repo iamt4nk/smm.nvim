@@ -28,7 +28,7 @@ function M.get_oauth_url(callback)
     headers = nil,
     query = query_table,
   }, function(_, response_headers, _)
-    callback(response_headers['location'], code_verifier, query_table['state'])
+    callback(response_headers['location'], code_verifier, query_table.state)
   end)
 end
 

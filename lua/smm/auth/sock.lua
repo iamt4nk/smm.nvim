@@ -45,13 +45,16 @@ local function return_server_bad_request_csrf()
   return server_response('Authentication Failed!', 'This could indicate a security issue')
 end
 
+---@param port integer
+---@param state string
+---@return string
 function M.create_server(port, state)
   local server = assert(socket.bind('*', port))
 
   server:settimeout(60)
 
   local client = server:accept()
-  local request = server:receive()
+  local request = client:receive()
 
   local error = request:match 'error=([^%s&]+)'
   local code = request:match 'code=([^%s&]+)'

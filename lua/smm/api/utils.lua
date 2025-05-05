@@ -4,14 +4,17 @@ local M = {}
 ---@param query_table table
 ---@return string
 function M.encode_table_as_query(query_table)
-  print('query_table: ' .. vim.inspect(query_table))
-  if not query_table or #query_table == 0 then
+  if not query_table then
     return ''
   end
 
   local query_parts = {}
   for key, value in pairs(query_table) do
     table.insert(query_parts, key .. '=' .. vim.uri_encode(tostring(value)))
+  end
+
+  if #query_parts == 0 then
+    return ''
   end
 
   return table.concat(query_parts, '&')
