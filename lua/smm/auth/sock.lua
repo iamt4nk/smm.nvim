@@ -49,11 +49,15 @@ end
 ---@param state string
 ---@return string
 function M.create_server(port, state)
+  print 'creating server'
   local server = assert(socket.bind('*', port))
 
+  print 'setting timeout'
   server:settimeout(60)
 
+  print 'creating client object'
   local client = server:accept()
+  print 'creating request object'
   local request = client:receive()
 
   local error = request:match 'error=([^%s&]+)'

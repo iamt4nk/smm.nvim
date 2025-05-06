@@ -22,10 +22,14 @@ function M.initiate_oauth_flow()
   end)
 
   vim.wait(200, function()
+    print 'waiting for auth url'
     return done
   end)
+
+  print(redirect_location)
   done = false
 
+  print 'Creating socket server'
   vim.schedule(function()
     local code = sock.create_server(port, state_code)
     if code then
@@ -34,9 +38,8 @@ function M.initiate_oauth_flow()
         done = true
       end)
     end
+    utils.open_browser(redirect_location)
   end)
-
-  utils.open_browser(redirect_location)
 
   vim.wait(200, function()
     return done
