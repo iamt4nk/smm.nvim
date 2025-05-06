@@ -26,15 +26,15 @@ function M.initiate_oauth_flow()
   end)
   done = false
 
-  print('redirect location: ' .. redirect_location .. '\ncode_verifier: ' .. code_verifier .. '\nstate_code: ' .. state_code)
-
-  code = sock.create_server(port, state_code)
-  if code then
-    requests.get_access_token(code, code_verifier, redirect_uri, function(response_body)
-      auth_info = response_body
-      done = true
-    end)
-  end
+  vim.schedule(function()
+    local code = sock.create_server(port, state_code)
+    if code then
+      requests.get_access_token(code, code_verifier, redirect_uri, function(response_body)
+        auth_info = response_body
+        done = true
+      end)
+    end
+  end)
 
   utils.open_browser(redirect_location)
 

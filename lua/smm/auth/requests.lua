@@ -15,7 +15,7 @@ function M.get_oauth_url(callback)
     response_type = 'code',
     client_id = spotify_client.client_id,
     scope = table.concat(spotify_client.scope, ' '),
-    code_challenge_method = 'S2565',
+    code_challenge_method = 'S256',
     code_challenge = code_challenge_b64,
     redirect_uri = spotify_client.callback_url,
     state = api_utils.generate_random_string(16),
