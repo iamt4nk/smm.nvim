@@ -6,12 +6,13 @@ local M = {}
 ---@type SpotifyClient
 M.spotify = {
   client_id = 'c43057d088204249bca8d5bde4e93bd3',
-  callback_url = 'https://127.0.0.1:8080/callback',
+  callback_url = 'http://127.0.0.1:8080/callback',
   scope = {
     'user-read-playback-state',
     'user-read-currently-playing',
     'user-modify-playback-state',
     'user-read-private',
+    'user-read-email',
   },
 }
 
