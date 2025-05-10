@@ -5,8 +5,8 @@ local spotify_client = require('smm.auth.models').spotify
 local M = {}
 
 ---Gets the Authorization URL that we need to call. This will contain our redirect
----@param callback fun(redirect_location: string, code_verifier: string, state_code: string)
-function M.get_oauth_url(callback)
+---@return string, string, string
+function M.get_oauth_url()
   local code_verifier = api_utils.generate_random_string(64)
   local code_challenge = api_utils.get_sha256_sum(code_verifier)
   local code_challenge_b64 = api_utils.get_b64_encoded(code_challenge)
@@ -22,22 +22,23 @@ function M.get_oauth_url(callback)
   }
 
   print 'Sending API request'
-  api.get({
+  local resp_body, resp_headers, resp_status = api.get {
     request_name = 'GET OAuth URL',
     url = 'https://accounts.spotify.com/authorize',
     headers = nil,
     query = query_table,
-  }, function(_, response_headers, _)
-    callback(response_headers['location'], code_verifier, query_table.state)
-  end)
+  }
+
+  local response_headers = api_utils.convert_headers_list_to_map(resp_headers)
+
+  return response_headers['location'], code_verifier, query_table['state']
 end
 
 ---Get the access token from the spotify server
 ---@param code string
 ---@param code_verifier string
 ---@param redirect_uri string
----@param callback fun(response_body: string)
-function M.get_access_token(code, code_verifier, redirect_uri, callback)
+function M.get_access_token(code, code_verifier, redirect_uri)
   print 'getting access token'
   local form_table = {
     code = code,
@@ -51,22 +52,21 @@ function M.get_access_token(code, code_verifier, redirect_uri, callback)
     ['Content-Type'] = 'application/x-www-form-urlencoded',
   }
 
-  api.post({
+  local resp_body, _, _ = api.post {
     request_name = 'GET OAuth Access Token',
     url = 'https://accounts.spotify.com/api/token',
     query = nil,
     headers = headers,
     body = form_table,
-  }, function(response_body, response_headers, status_code)
-    print(tostring(response_body) .. ' ' .. tostring(vim.inspect(response_headers)) .. ' ' .. tostring(status_code))
-    callback(response_body)
-  end)
+  }
+
+  return resp_body
 end
 
 ---Refresh access token
 ---@param refresh_token string
----@param callback fun(auth_info: string|nil)
-function M.refresh_access_token(refresh_token, callback)
+---@return string|nil
+function M.refresh_access_token(refresh_token)
   local form_table = {
     grant_type = 'refresh_token',
     refresh_token = refresh_token,
@@ -77,19 +77,20 @@ function M.refresh_access_token(refresh_token, callback)
     ['Content-Type'] = 'application/x-www-form-urlencoded',
   }
 
-  api.post({
+  local resp_body, _, resp_status = api.post {
     request_name = 'GET Refresh access token',
     url = 'https://accounts.spotify.com/api/token',
     query = nil,
     headers = headers,
     body = form_table,
-  }, function(response_body, response_headers, status_code)
-    if status_code == 400 then
-      print('Unable to authenticate. Returned status code: ' .. status_code)
-      callback(nil)
-    end
-    callback(response_body)
-  end)
+  }
+
+  if resp_status == 400 then
+    print('Unable to authenticate. Returned status code: ' .. resp_status)
+    return nil
+  end
+
+  return resp_body
 end
 
 return M
