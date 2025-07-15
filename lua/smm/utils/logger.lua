@@ -1,5 +1,3 @@
-local config = require 'smm.config'
-
 local M = {}
 
 local LOG_LEVELS = {
@@ -9,6 +7,8 @@ local LOG_LEVELS = {
   DEBUG = { level = 4, hl = 'Comment', prefix = '[DEBUG]' },
 }
 
+local debug_level = false
+
 -- Internal logging function
 local function log(level, message, ...)
   local log_config = LOG_LEVELS[level]
@@ -17,10 +17,15 @@ local function log(level, message, ...)
   end
 
   -- Always show ERROR and WARN, only show INFO/DEBUG in debug mode
-  local should_log = log_config.level <= 2 or config.get_value 'debug'
+  local should_log = log_config.level <= 3 or debug_level
 
   if should_log then
-    local formatted_msg = string.format(message, ...)
+    local formatted_msg = ''
+    if ... then
+      formatted_msg = string.format(message, ...)
+    else
+      formatted_msg = message
+    end
     local full_message = string.format('%s smm.nvim %s', log_config.prefix, formatted_msg)
 
     vim.schedule(function()
@@ -30,6 +35,13 @@ local function log(level, message, ...)
 end
 
 -- Public logging functions
+
+---@param log_opts table
+function M.setup(log_opts)
+  if log_opts and log_opts.debug == true then
+    debug_level = true
+  end
+end
 
 function M.error(message, ...)
   log('ERROR', message, ...)
