@@ -5,6 +5,7 @@ local M = {}
 local default_config = {
   initialized = false,
   debug = true,
+  -- file = '/home/klanum/smm_log.txt',
 
   example_module = {
     enabled = true,

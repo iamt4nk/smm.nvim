@@ -8,11 +8,16 @@ local LOG_LEVELS = {
 }
 
 local debug_level = false
+local log_file = ''
+local enabled = true
 
 -- Internal logging function
+---@param level integer
+---@param message string
+---@param ... any
 local function log(level, message, ...)
   local log_config = LOG_LEVELS[level]
-  if not log_config then
+  if not log_config or not enabled then
     return
   end
 
@@ -28,9 +33,21 @@ local function log(level, message, ...)
     end
     local full_message = string.format('%s smm.nvim %s', log_config.prefix, formatted_msg)
 
-    vim.schedule(function()
-      vim.notify(full_message, vim.log.levels[level], { title = 'SMM.nvim' })
-    end)
+    if not log_file or log_file == '' then
+      if level == 1 then
+        error(full_message)
+      end
+      vim.schedule(function()
+        vim.notify(full_message, vim.log.levels[level], { title = 'SMM.nvim' })
+      end)
+    else
+      local file = io.open(log_file, 'a+')
+      if not file then
+        error 'Failed to open log file'
+      end
+      file:write(full_message .. '\n')
+      file:close()
+    end
   end
 end
 
@@ -41,20 +58,32 @@ function M.setup(log_opts)
   if log_opts and log_opts.debug == true then
     debug_level = true
   end
+
+  if log_opts and log_opts.file ~= '' then
+    log_file = log_opts.file
+  end
 end
 
+---@param message string
+---@param ... any
 function M.error(message, ...)
   log('ERROR', message, ...)
 end
 
+---@param message string
+---@param ... any
 function M.warn(message, ...)
   log('WARN', message, ...)
 end
 
+---@param message string
+---@param ... any
 function M.info(message, ...)
   log('INFO', message, ...)
 end
 
+---@param message string
+---@param ... any
 function M.debug(message, ...)
   log('DEBUG', message, ...)
 end

@@ -2,6 +2,8 @@ local logger = require 'smm.utils.logger'
 
 local M = {}
 
+math.randomseed(os.time() + vim.loop.getpid())
+
 ---@param length integer
 ---@return string
 function M.generate_random_string(length)

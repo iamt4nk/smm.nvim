@@ -1,13 +1,18 @@
 local logger = require 'smm.utils.logger'
 local config = require 'smm.spotify.auth.config'
-local utils = require 'smm.spotify.auth.crypto'
-local api_utils = require 'smm.spotify.auth.api_utils'
+local crypto = require 'smm.utils.crypto'
+local encoding = require 'smm.utils.encoding'
+local sock = require 'smm.spotify.auth.sock'
+local requests = require 'smm.spotify.auth.requests'
+local os_utils = require 'smm.utils.os'
+
+M.auth_info = nil
 
 ---@return string oauth_url, string redirect_uri, string code_verifier, string state
 local function get_oauth_info()
-  local code_verifier = utils.generate_random_string(64)
-  local code_challenge = utils.get_base64(utils.get_sha256_sum(code_verifier))
-  local state = utils.generate_random_string(16)
+  local code_verifier = crypto.generate_random_string(64)
+  local code_challenge = crypto.get_base64(crypto.get_sha256_sum(code_verifier))
+  local state = crypto.generate_random_string(16)
 
   local query_table = {
     response_type = 'code',
@@ -19,9 +24,9 @@ local function get_oauth_info()
     state = state,
   }
 
-  local query = api_utils.encode_table_as_query(query_table)
+  local query = encoding.encode_table_as_query(query_table)
 
-  oauth_url = 'https://accounts.spotify.com/authorize?' .. query
+  local oauth_url = 'https://accounts.spotify.com/authorize?' .. query
 
   return oauth_url, query_table['redirect_uri'], code_verifier, state
 end
@@ -30,9 +35,46 @@ local M = {}
 
 function M.initiate_oauth_flow()
   local oauth_url, redirect_uri, code_verifier, state = get_oauth_info()
-  logger.debug('OAuth URL: %s', oauth_url)
-  logger.debug('Redirect URI: %s', redirect_uri)
-  logger.debug('Code Verifier: %s', code_verifier)
-  logger.debug('State: %s', state)
+  local port = config.get_value 'callback_port'
+
+  local done = false
+
+  local auth_info = nil
+
+  print(oauth_url)
+  os_utils.open_browser(oauth_url)
+
+  sock.start_server(port, state, function(success, response)
+    if not success then
+      logger.error(response)
+    end
+
+    vim.schedule(function()
+      auth_info = requests.get_access_token(response, code_verifier, redirect_uri)
+    end)
+
+    done = true
+  end)
+
+  vim.wait(200, function()
+    return done
+  end)
+
+  if auth_info then
+    M.auth_info = auth_info
+  end
+
+  return auth_info
 end
+
+---@param refresh_token string
+---@return SMM_AuthInfo
+function M.refresh_access_token(refresh_token)
+  local auth_info = requests.refresh_access_token(refresh_token)
+  if not auth_info then
+    logger.error 'Unable to refresh token'
+  end
+  return auth_info ---@diagnostic disable-line # We are never actually returning string|nil even though the linter thinks we are
+end
+
 return M

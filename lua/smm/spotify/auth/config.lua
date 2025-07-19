@@ -1,4 +1,3 @@
-local logger = require 'smm.utils.logger'
 local M = {}
 
 ---@alias SMM_SpotifyAuthConfig { enabled: boolean, client_id: string, callback_url: string, callback_port: integer, scope: string[] }

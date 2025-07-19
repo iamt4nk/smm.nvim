@@ -31,7 +31,6 @@ function M.encode_table_as_json(json_table)
   local ok, json_string = pcall(vim.json.encode, json_table)
   if not ok then
     logger.error 'Unable to encode table as JSON'
-    return ''
   end
 
   return json_string
