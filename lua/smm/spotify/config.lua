@@ -12,6 +12,7 @@ function M.setup(user_config)
   config = user_config
 
   logger.debug 'Initializaing Spotify - Auth Module Config'
+  logger.debug(vim.inspect(user_config))
   require('smm.spotify.auth.config').setup(user_config.auth)
 end
 

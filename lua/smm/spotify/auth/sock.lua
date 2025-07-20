@@ -48,210 +48,185 @@ end
 
 local M = {}
 
----@param port integer
----@param state string
----@param callback function Function to call with the result (success, code_or_error)
-function M.start_server(port, state, callback)
-  logger.debug('Starting HTTP server on port %d using vim.loop', port)
-
-  local server = vim.loop.new_tcp()
-  local timeout_duration = config.get_value 'debug' == true and 60000 or 600000
-
-  -- Set up timeout
-  local timeout_timer = vim.loop.new_timer()
-  timeout_timer:start(timeout_duration, 0, function()
-    logger.debug 'Server timeout reached'
-    server:close()
-    callback(false, 'Authentication timeout')
-  end)
-
-  server:bind('127.0.0.1', port)
-
-  server:listen(128, function(err)
-    if err then
-      timeout_timer:close()
-      logger.error('Server listen error: %s', err)
-    end
-
-    local client = vim.loop.new_tcp()
-    server:accept(client)
-
-    -- Read the HTTP request
-    client:read_start(function(read_err, data)
-      if read_err then
-        client:close()
-        logger.error('Client read error: %s', read_err)
-      end
-
-      if data then
-        logger.debug('Received request data: %s', data)
-
-        -- Parse the HTTP request
-        local request_line = data:match 'GET ([^\r\n]+)'
-        if not request_line then
-          client:close()
-          return
-        end
-
-        logger.debug('Request line: %s', request_line)
-
-        -- Extract query parameters
-        local error_param = request_line:match 'error=([^%s&]+)'
-        local code = request_line:match 'code=([^%s&]+)'
-        local returned_state = request_line:match 'state=([^%s&]+)'
-
-        -- Validate state
-        logger.debug(returned_state)
-        if state ~= returned_state then
-          local response = string.format(
-            [[HTTP/1.1 400 Bad Request
-Content-Type: text/html
-Content-Length: %d
-
-%s]],
-            #get_server_bad_request_csrf(),
-            get_server_bad_request_csrf()
-          )
-
-          client:write(response)
-          client:close()
-          server:close()
-          timeout_timer:close()
-          callback(false, 'OAuth state mismatch - potential CSRF attack')
-          return
-        end
-
-        -- Prepare response
-        local response_body
-        local status_code
-
-        if error_param then
-          response_body = get_server_ok_not_authenticated()
-          status_code = '200 OK'
-        else
-          response_body = get_server_ok_authenticated()
-          status_code = '200 OK'
-        end
-
-        local response = string.format(
-          [[HTTP/1.1 %s
-Content-Type: text/html
-Content-Length: %d
-
-%s]],
-          status_code,
-          #response_body,
-          response_body
-        )
-
-        client:write(response, function()
-          client:close()
-          server:close()
-          timeout_timer:close()
-
-          if error_param then
-            callback(false, 'Authentication denied by user')
-          else
-            callback(true, code)
-          end
-        end)
-      end
-    end)
-  end)
-
-  logger.debug 'TCP server created and listening'
-end
-
 -- ---@param port integer
 -- ---@param state string
--- ---@param callback fun(success: boolean, response: string)
--- ---@return string code Verification Code
+-- ---@param callback function Function to call with the result (success, code_or_error)
 -- function M.start_server(port, state, callback)
---   logger.debug('Starting HTTP server on port %d', port)
+--   logger.debug('Starting HTTP server on port %d using vim.loop', port)
 --
---   local server = assert(socket.bind('*', port))
---   logger.debug 'Server started'
+--   local server = vim.loop.new_tcp()
+--   local timeout_duration = config.get_value 'debug' == true and 60000 or 600000
 --
---   logger.debug 'Setting server timeout'
---   server:settimeout(0)
+--   -- Set up timeout
+--   local timeout_timer = vim.loop.new_timer()
+--   timeout_timer:start(timeout_duration, 0, function()
+--     logger.debug 'Server timeout reached'
+--     server:close()
+--     callback(false, 'Authentication timeout')
+--   end)
 --
---   local timeout_duration = config.get_value 'debug' == true and 60000 or 300000 --milliseconds
---   local start_time = vim.loop.now()
+--   server:bind('127.0.0.1', port)
 --
---   logger.debug 'Server timeout set'
+--   server:listen(128, function(err)
+--     if err then
+--       timeout_timer:close()
+--       logger.error('Server listen error: %s', err)
+--     end
 --
---   logger.debug 'Accepting requests to server'
---   local timer = vim.loop.new_timer()
---   timer:start(
---     100,
---     100,
---     vim.schedule_wrap(function()
---       local current_time = vim.loop.now()
+--     local client = vim.loop.new_tcp()
+--     server:accept(client)
 --
---       if current_time - start_time > timeout_duration then
---         timer:stop()
---         timer:close()
---         server:close()
---         callback(false, 'Authentication timeout')
---         return
+--     -- Read the HTTP request
+--     client:read_start(function(read_err, data)
+--       if read_err then
+--         client:close()
+--         logger.error('Client read error: %s', read_err)
 --       end
 --
---       -- Try to accept a connection (non-blocking)
---       local client, err = server:accept()
---       if client then
---         timer:stop()
---         timer:close()
+--       if data then
+--         logger.debug('Received request data: %s', data)
 --
---         local request = client:receive()
---         logger.debug 'Received request'
+--         -- Parse the HTTP request
+--         local request_line = data:match 'GET ([^\r\n]+)'
+--         if not request_line then
+--           client:close()
+--           return
+--         end
 --
---         local error = request:match 'error=([^%s&]+)'
---         local code = request:match 'code=([^%s&]+)'
---         local returned_state = request:match 'state=([^%s]+)'
+--         logger.debug('Request line: %s', request_line)
 --
---         local response = ''
+--         -- Extract query parameters
+--         local error_param = request_line:match 'error=([^%s&]+)'
+--         local code = request_line:match 'code=([^%s&]+)'
+--         local returned_state = request_line:match 'state=([^%s&]+)'
 --
+--         -- Validate state
+--         logger.debug(returned_state)
 --         if state ~= returned_state then
---           response = [[HTTP/1.2 400 Bad Request
---           Content-Type: text/html
+--           local response = string.format(
+--             [[HTTP/1.1 400 Bad Request
+-- Content-Type: text/html
+-- Content-Length: %d
 --
---           ]] .. get_server_bad_request_csrf()
+-- %s]],
+--             #get_server_bad_request_csrf(),
+--             get_server_bad_request_csrf()
+--           )
 --
---           client:send(response)
+--           client:write(response)
 --           client:close()
 --           server:close()
+--           timeout_timer:close()
 --           callback(false, 'OAuth state mismatch - potential CSRF attack')
 --           return
 --         end
 --
---         if error ~= nil then
---           response = [[HTTP/1.2 200 OK
---           Content-Type: text/html
+--         -- Prepare response
+--         local response_body
+--         local status_code
 --
---           ]] .. get_server_ok_not_authenticated()
---           client:send(response)
---           client:close()
---           server:close()
---           callback(false, 'Authentication denied by user')
---           return
+--         if error_param then
+--           response_body = get_server_ok_not_authenticated()
+--           status_code = '200 OK'
 --         else
---           response = [[HTTP/1.2 200 OK
---           Content-Type: text/html
+--           response_body = get_server_ok_authenticated()
+--           status_code = '200 OK'
+--         end
 --
---           ]] .. get_server_ok_authenticated()
---           client:send(response)
+--         local response = string.format(
+--           [[HTTP/1.1 %s
+-- Content-Type: text/html
+-- Content-Length: %d
+--
+-- %s]],
+--           status_code,
+--           #response_body,
+--           response_body
+--         )
+--
+--         client:write(response, function()
 --           client:close()
 --           server:close()
---           callback(true, code)
---         end
---       elseif err ~= 'timeout' then
---         timer:stop()
---         timer:close()
---         server:close()
---         callback(false, 'Server Error: ' .. tostring(err))
+--           timeout_timer:close()
+--
+--           if error_param then
+--             callback(false, 'Authentication denied by user')
+--           else
+--             callback(true, code)
+--           end
+--         end)
 --       end
 --     end)
---   )
+--   end)
+--
+--   logger.debug 'TCP server created and listening'
 -- end
+--
+---@param port integer
+---@param state string
+---@return string code Verification Code
+function M.start_server(port, state)
+  logger.debug('Starting HTTP server on port %d', port)
+
+  local server = assert(socket.bind('*', port))
+  logger.debug 'Server started'
+
+  server:settimeout(60)
+
+  logger.debug 'Accepting requests to server'
+
+  -- Try to accept a connection (non-blocking)
+  local client, err = server:accept()
+  local request = client:receive()
+  logger.debug 'Received request'
+
+  local error = request:match 'error=([^%s&]+)'
+  local code = request:match 'code=([^%s&]+)'
+  local returned_state = request:match 'state=([^%s]+)'
+
+  local response = ''
+
+  if state ~= returned_state then
+    response = string.format(
+      [[HTTP/1.2 400 Bad Request
+Content-Type: text/html
+
+%s]],
+      get_server_bad_request_csrf()
+    )
+
+    client:send(response)
+    client:close()
+    server:close()
+    logger.error 'CSRF state mismatch - this could indicate a security issue'
+  end
+
+  if error ~= nil then
+    response = string.format(
+      [[HTTP/1.2 200 OK
+Content-Type: text/html
+
+%s]],
+      get_server_ok_not_authenticated()
+    )
+    client:send(response)
+    client:close()
+    server:close()
+    logger.error 'Authentication denied - plugin not loaded'
+  else
+    response = string.format(
+      [[HTTP/1.2 200 OK
+Content-Type: text/html
+
+%s]],
+      get_server_ok_authenticated()
+    )
+    client:send(response)
+    client:close()
+    server:close()
+  end
+
+  return code
+end
 
 return M

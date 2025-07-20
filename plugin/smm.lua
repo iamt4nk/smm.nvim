@@ -9,5 +9,5 @@ if vim.fn.has 'nvim-0.8' == 0 then
   error 'SMM.nvim requires Neovim 0.8+'
 end
 
-require('smm.config').setup()
-require('smm.spotify.auth').initiate_oauth_flow()
+require('smm').setup()
+require('smm.spotify').auth()
