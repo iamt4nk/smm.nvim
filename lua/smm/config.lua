@@ -19,12 +19,7 @@ local default_config = {
       client_id = 'c43057d088204249bca8d5bde4e93bd3',
       callback_url = 'http://127.0.0.1',
       callback_port = 8080,
-      scope = {
-        'user-read-playback-state',
-        'user-read-currently-playing',
-        'user-modify-playback-state',
-        'user-read-private',
-      },
+      premium = true,
     },
   },
 }

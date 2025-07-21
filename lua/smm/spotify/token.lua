@@ -24,6 +24,7 @@ end
 ---@return string|nil
 function M.load_refresh_token()
   local refresh_token_path = utils.get_spotify_state_path() .. '/refresh_token'
+  logger.debug('Refresh Token Path: %s', refresh_token_path)
   local file = io.open(refresh_token_path, 'r')
   if not file then
     return nil

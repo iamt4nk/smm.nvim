@@ -1,10 +1,10 @@
 local M = {}
 
 local LOG_LEVELS = {
-  ERROR = { level = 1, hl = 'ErrorMsg', prefix = '[ERROR]' },
-  WARN = { level = 2, hl = 'WarningMsg', prefix = '[WARN]' },
-  INFO = { level = 3, hl = 'None', prefix = '[INFO]' },
-  DEBUG = { level = 4, hl = 'Comment', prefix = '[DEBUG]' },
+  DEBUG = { level = 1, hl = 'Comment', prefix = '[DEBUG]' },
+  INFO = { level = 2, hl = 'None', prefix = '[INFO]' },
+  WARN = { level = 3, hl = 'WarningMsg', prefix = '[WARN]' },
+  ERROR = { level = 4, hl = 'ErrorMsg', prefix = '[ERROR]' },
 }
 
 local debug_level = false
@@ -12,7 +12,7 @@ local log_file = ''
 local enabled = true
 
 -- Internal logging function
----@param level integer
+---@param level string
 ---@param message string
 ---@param ... any
 local function log(level, message, ...)
@@ -22,7 +22,7 @@ local function log(level, message, ...)
   end
 
   -- Always show ERROR and WARN, only show INFO/DEBUG in debug mode
-  local should_log = log_config.level <= 3 or debug_level
+  local should_log = log_config.level > 1 or debug_level
 
   if should_log then
     local formatted_msg = ''
@@ -34,7 +34,7 @@ local function log(level, message, ...)
     local full_message = string.format('%s smm.nvim %s', log_config.prefix, formatted_msg)
 
     if not log_file or log_file == '' then
-      if level == 1 then
+      if level == 4 then
         error(full_message)
       end
       vim.schedule(function()

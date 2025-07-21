@@ -7,8 +7,6 @@ math.randomseed(os.time() + vim.loop.getpid())
 ---@param length integer
 ---@return string
 function M.generate_random_string(length)
-  logger.debug('Generating random string with length: %d', length)
-
   local charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
   local random_string = ''
 
@@ -37,16 +35,12 @@ function M.get_sha256_sum(data)
   end
 
   local hash_string = table.concat(hash_bytes)
-  logger.debug 'Hashing data completed'
-
   return hash_string
 end
 
 ---@param data string
 ---@return string
 function M.get_base64(data)
-  logger.debug 'Getting base64 representation of data'
-
   local base64_data = vim.base64.encode(data)
   base64_data = string.gsub(base64_data, '%=', '')
   base64_data = string.gsub(base64_data, '%+', '-')
