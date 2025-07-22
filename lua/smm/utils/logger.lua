@@ -37,9 +37,7 @@ local function log(level, message, ...)
       if level == 4 then
         error(full_message)
       end
-      vim.schedule(function()
-        vim.notify(full_message, vim.log.levels[level], { title = 'SMM.nvim' })
-      end)
+      print(full_message)
     else
       local file = io.open(log_file, 'a+')
       if not file then
@@ -52,7 +50,6 @@ local function log(level, message, ...)
 end
 
 -- Public logging functions
-
 ---@param log_opts table
 function M.setup(log_opts)
   if log_opts and log_opts.debug == true then

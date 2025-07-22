@@ -12,6 +12,10 @@ local default_config = {
     some_setting = 'default_value',
   },
 
+  interface = {
+    playback_pos = 'BottomRight', ---@type SMM_PlaybackWindowPosition
+  },
+
   spotify = {
     enabled = true,
     auth = {
@@ -27,6 +31,10 @@ local default_config = {
 local current_config = {}
 
 function M.setup(user_config)
+  if user_config.debug == nil then
+    user_config.debug = false
+  end
+
   logger.setup((user_config and user_config.debug and user_config) or default_config)
 
   logger.debug('Default config: %s\n', vim.inspect(default_config))
@@ -35,6 +43,10 @@ function M.setup(user_config)
 
   logger.debug 'Initializing Spotify Module config'
   require('smm.spotify.config').setup(current_config.spotify)
+
+  logger.debug 'Initializing interface module config'
+  require('smm.interface.config').setup(current_config.interface)
+
   logger.debug 'Initializing example module config'
   require('smm.example_module.config').setup(current_config.example_module)
 end
