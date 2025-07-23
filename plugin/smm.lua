@@ -10,4 +10,3 @@ if vim.fn.has 'nvim-0.8' == 0 then
 end
 
 require('smm').setup()
-require('smm.spotify').auth()

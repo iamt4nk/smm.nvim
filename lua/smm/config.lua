@@ -40,15 +40,6 @@ function M.setup(user_config)
   logger.debug('Default config: %s\n', vim.inspect(default_config))
   current_config = vim.tbl_deep_extend('force', default_config, user_config or {})
   logger.debug('Merged config: %s\n', vim.inspect(current_config))
-
-  logger.debug 'Initializing Spotify Module config'
-  require('smm.spotify.config').setup(current_config.spotify)
-
-  logger.debug 'Initializing interface module config'
-  require('smm.interface.config').setup(current_config.interface)
-
-  logger.debug 'Initializing example module config'
-  require('smm.example_module.config').setup(current_config.example_module)
 end
 
 function M.get()

@@ -11,7 +11,7 @@ local config = {}
 function M.setup(user_config)
   config = user_config
 
-  logger.debug 'Initializaing Spotify - Auth Module Config'
+  logger.debug 'Initializing Spotify - Auth Module Config'
   require('smm.spotify.auth.config').setup(user_config.auth)
 end
 

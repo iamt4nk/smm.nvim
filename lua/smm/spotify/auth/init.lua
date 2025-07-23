@@ -33,6 +33,10 @@ local M = {}
 
 M.auth_info = nil
 
+function M.setup(user_config)
+  config.setup(user_config or {})
+end
+
 function M.initiate_oauth_flow()
   local oauth_url, redirect_uri, code_verifier, state = get_oauth_info()
   local port = config.get_value 'callback_port'

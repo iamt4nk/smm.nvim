@@ -1,10 +1,18 @@
 local auth = require 'smm.spotify.auth'
 local token = require 'smm.spotify.token'
+local config = require 'smm.spotify.config'
+local commands = require 'smm.spotify.commands'
 local logger = require 'smm.utils.logger'
 
 local M = {}
 
 M.auth_info = nil
+
+function M.setup(user_config)
+  config.setup(user_config)
+
+  commands.setup()
+end
 
 function M.auth()
   local refresh_token = token.load_refresh_token()
@@ -13,10 +21,10 @@ function M.auth()
     logger.info 'No refresh token found - initiating OAuth Flow'
     M.auth_info = auth.initiate_oauth_flow()
   else
-    token.delete_refresh_token()
     M.auth_info = auth.refresh_access_token(refresh_token)
   end
 
+  token.delete_refresh_token()
   token.save_refresh_token(M.auth_info.refresh_token)
 end
 

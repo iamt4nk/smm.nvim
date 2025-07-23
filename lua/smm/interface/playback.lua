@@ -5,6 +5,9 @@ local M = {}
 
 ---@alias SMM_WindowInfo { artist: string|nil, track: string, time: integer|nil, duration: integer|nil }
 
+---@type boolean
+M.is_showing = false
+
 ---@type integer
 local buf = nil
 
@@ -12,10 +15,10 @@ local buf = nil
 local win_opts = {}
 
 ---@type integer
-M.win = nil
+local win = nil
 
 ---@type SMM_WindowInfo
-M.info = nil
+local info = nil
 
 ---@param playback_info SMM_WindowInfo
 function M.format_playback_lines(playback_info)
@@ -86,17 +89,17 @@ function M.create_window()
       vim.bo[buf].swapfile = false
     end
 
-    if not M.win or not vim.api.nvim_win_is_valid(M.win) then
-      M.win = vim.api.nvim_open_win(buf, false, win_opts)
+    if not win or not vim.api.nvim_win_is_valid(win) then
+      M.is_showing = true
+      win = vim.api.nvim_open_win(buf, false, win_opts)
 
-      vim.wo[M.win].winblend = 15
-      vim.wo[M.win].wrap = false
+      vim.wo[win].wrap = false
     else
-      vim.api.nvim_win_set_config(M.win, win_opts)
+      vim.api.nvim_win_set_config(win, win_opts)
     end
 
     vim.api.nvim_set_hl(0, 'SpotifyGreen', { fg = '#1ED760' })
-    vim.api.nvim_win_set_option(M.win, 'winhighlight', 'FloatTitle:SpotifyGreen,FloatBorder:SpotifyGreen')
+    vim.api.nvim_win_set_option(win, 'winhighlight', 'FloatTitle:SpotifyGreen,FloatBorder:SpotifyGreen')
   end)
 end
 
@@ -108,17 +111,18 @@ function M.update_window(lines)
 
     set_window_pos(width, height)
 
-    vim.api.nvim_win_set_config(M.win, win_opts)
+    vim.api.nvim_win_set_config(win, win_opts)
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   end)
 end
 
 function M.remove_window()
-  if M.win and vim.api.nvim_win_is_valid(M.win) then
-    vim.api.nvim_win_close(M.win, true)
+  if win and vim.api.nvim_win_is_valid(win) then
+    M.is_showing = false
+    vim.api.nvim_win_close(win, true)
     win_opts = {}
-    M.info = nil
-    M.win = nil
+    info = nil
+    win = nil
   end
 
   if buf and vim.api.nvim_buf_is_valid(buf) then
