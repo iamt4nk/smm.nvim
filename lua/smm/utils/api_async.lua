@@ -17,6 +17,8 @@ end
 ---@param response table
 ---@return table|string, table, integer
 local function process_response(response)
+  logger.debug(vim.inspect(response))
+
   -- Extract parts of response
   local response_body = response.body
   local response_headers_array = response.headers

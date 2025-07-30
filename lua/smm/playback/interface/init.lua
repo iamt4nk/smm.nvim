@@ -1,9 +1,11 @@
-local config = require 'smm.interface.config'
-local utils = require 'smm.interface.utils'
+local config = require 'smm.playback.interface.config'
+local utils = require 'smm.playback.interface.utils'
 
 local M = {}
 
----@alias SMM_WindowInfo { artist: string|nil, track: string, time: integer|nil, duration: integer|nil }
+function M.setup(user_config)
+  config.setup(user_config or {})
+end
 
 ---@type boolean
 M.is_showing = false
@@ -16,31 +18,6 @@ local win_opts = {}
 
 ---@type integer
 local win = nil
-
----@type SMM_WindowInfo
-local info = nil
-
----@param playback_info SMM_WindowInfo
-function M.format_playback_lines(playback_info)
-  local playback_lines = {}
-
-  if not playback_info then
-    playback_lines:insert 'No track currently playing'
-  else
-    playback_lines:insert('Artist: ' .. playback_info['artist'])
-    playback_lines:insert('Track: ' .. playback_info['track'])
-    playback_lines:insert('Current: ' .. utils.convert_ms_to_timestamp(playback_info['time']))
-    playback_lines:insert('Duration: ' .. utils.convert_ms_to_timestamp(playback_info['duration']))
-
-    local progress = math.floor((playback_info['time'] / playback_info['duration']) * 20)
-    local bar = '[' .. string.rep('=', progress) .. string.rep(' ', 20 - progress) .. ']'
-    playback_lines:insert(bar)
-  end
-
-  playback_lines = utils.pad_lines(playback_lines, 1, 2, 1, 2)
-
-  return playback_lines
-end
 
 ---@param width integer
 ---@param height integer
@@ -66,8 +43,11 @@ end
 
 function M.create_window()
   vim.schedule(function()
+    local lines = { 'Loading Spotify Information...' }
+    lines = utils.pad_lines(lines, 1, 2, 1, 2)
+
     local width = 40
-    local height = 2
+    local height = #lines
 
     win_opts = {
       relative = 'editor',
@@ -100,12 +80,15 @@ function M.create_window()
 
     vim.api.nvim_set_hl(0, 'SpotifyGreen', { fg = '#1ED760' })
     vim.api.nvim_win_set_option(win, 'winhighlight', 'FloatTitle:SpotifyGreen,FloatBorder:SpotifyGreen')
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   end)
 end
 
----@param lines string[]
-function M.update_window(lines)
+---@param playback_info SMM_PlaybackInfo|nil
+function M.update_window(playback_info)
   vim.schedule(function()
+    local lines = utils.format_playback_lines(playback_info)
+
     local width = 40
     local height = #lines
 

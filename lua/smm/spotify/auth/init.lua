@@ -31,8 +31,6 @@ end
 
 local M = {}
 
-M.auth_info = nil
-
 function M.setup(user_config)
   config.setup(user_config or {})
 end
@@ -41,18 +39,12 @@ function M.initiate_oauth_flow()
   local oauth_url, redirect_uri, code_verifier, state = get_oauth_info()
   local port = config.get_value 'callback_port'
 
-  local auth_info = nil
-
   print(oauth_url)
   os_utils.open_browser(oauth_url)
 
   local oauth_code = sock.start_server(port, state)
 
-  auth_info = requests.get_access_token(oauth_code, code_verifier, redirect_uri)
-
-  if auth_info then
-    M.auth_info = auth_info
-  end
+  local auth_info = requests.get_access_token(oauth_code, code_verifier, redirect_uri)
 
   return auth_info
 end

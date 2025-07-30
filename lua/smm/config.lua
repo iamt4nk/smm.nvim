@@ -12,8 +12,13 @@ local default_config = {
     some_setting = 'default_value',
   },
 
-  interface = {
-    playback_pos = 'BottomRight', ---@type SMM_PlaybackWindowPosition
+  playback = {
+    enabled = true,
+    timer_update_interval = 100,
+    timer_sync_interval = 5000,
+    interface = {
+      playback_pos = 'BottomRight', ---@type SMM_PlaybackWindowPosition
+    },
   },
 
   spotify = {
@@ -28,7 +33,7 @@ local default_config = {
   },
 }
 
-local current_config = {}
+local config = {}
 
 function M.setup(user_config)
   if user_config.debug == nil then
@@ -38,16 +43,16 @@ function M.setup(user_config)
   logger.setup((user_config and user_config.debug and user_config) or default_config)
 
   logger.debug('Default config: %s\n', vim.inspect(default_config))
-  current_config = vim.tbl_deep_extend('force', default_config, user_config or {})
-  logger.debug('Merged config: %s\n', vim.inspect(current_config))
+  config = vim.tbl_deep_extend('force', default_config, user_config or {})
+  logger.debug('Merged config: %s\n', vim.inspect(config))
 end
 
 function M.get()
-  return current_config
+  return config
 end
 
 function M.get_value(key)
-  return current_config[key]
+  return config[key]
 end
 
 return M

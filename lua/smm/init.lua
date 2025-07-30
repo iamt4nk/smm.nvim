@@ -1,6 +1,6 @@
 local logger = require 'smm.utils.logger'
 local spotify = require 'smm.spotify'
-local interface = require 'smm.interface'
+local playback = require 'smm.playback'
 local config = require 'smm.config'
 
 local M = {}
@@ -11,8 +11,8 @@ function M.setup(user_config)
   logger.debug 'Initializing Spotify Module'
   spotify.setup(config.get().spotify)
 
-  logger.debug 'Initializing Interface Module'
-  interface.setup(config.get().interface)
+  logger.debug 'Initializing Playback Module'
+  playback.setup(config.get().playback)
 end
 
 return M
