@@ -62,7 +62,7 @@ function M.get(url, headers, query, access_token, callback)
   local query_string = query and encoding.encode_table_as_query(query)
   headers = prepare_headers(headers, access_token)
 
-  logger.debug('Sending GET request: %s', url)
+  logger.debug('Sending GET request: %s\nQuery: %s\nHeaders: %s', url, vim.inspect(query), vim.inspect(headers))
 
   curl.get(query_string and (url .. '?' .. query_string) or url, {
     headers = headers,
@@ -101,7 +101,7 @@ function M.post(url, headers, query, body, access_token, callback)
     end
   end
 
-  logger.debug('Sending POST request: %s', url)
+  logger.debug('Sending POST request: %s\nQuery: %s\nHeaders: %s\nBody: %s', url, vim.inspect(query), vim.inspect(headers), vim.inspect(body))
 
   curl.post(query_string and (url .. '?' .. query_string) or url, {
     headers = headers or {},
@@ -117,7 +117,7 @@ end
 ---@param headers table|nil Optional Headers
 ---@param query table|nil Optional Query
 ---@param body table|string|nil Request body (will be encoded as JSON if Content-Type not specified)
----@param access_token string
+---@param access_token string Authorization Access Token
 ---@param callback fun(response_body: table|string, response_headers: table, status_code: integer) Callback Function
 function M.put(url, headers, query, body, access_token, callback)
   local query_string = query and encoding.encode_table_as_query(query)
@@ -131,9 +131,7 @@ function M.put(url, headers, query, body, access_token, callback)
         body_data = encoding.encode_table_as_query(body)
       else
         -- We default to JSON
-        headers = {
-          ['Content-Type'] = 'application/json',
-        }
+        headers['Content-Type'] = 'application/json'
         body_data = encoding.encode_table_as_json(body)
       end
     else
@@ -141,7 +139,7 @@ function M.put(url, headers, query, body, access_token, callback)
     end
   end
 
-  logger.debug('Sending PUT request: %s', url)
+  logger.debug('Sending PUT request: %s\nQuery: %s\nHeaders: %s\n Body: %s', url, vim.inspect(query), vim.inspect(headers), body_data)
 
   curl.put(query_string and (url .. '?' .. query_string) or url, {
     headers = headers or {},

@@ -37,7 +37,7 @@ local function handle_timer_sync(callback)
         callback(nil)
       end
     else
-      logger.error('Getting playback state failed:\nStatus Code: %s', status_code)
+      logger.error('Getting playback state failed:\nStatus Code: %s\nError: %s', status_code, playback_response)
     end
   end)
 end
@@ -58,22 +58,24 @@ local function handle_timer_pause()
     if status_code == 200 or status_code == 204 then
       playback_timer.pause(timer)
     else
-      logger.error('Unable to pause current track:\nStatus Code: %s\nError: %s', status_code, pause_response)
+      logger.error('Unable to pause current track:\nStatus Code: %s\nError: %s', status_code, vim.inspect(pause_response))
     end
   end)
 end
 
+---@param context_uri string|nil
+---@param offset integer|nil
 ---@param position_ms integer|nil
-local function handle_timer_resume(position_ms)
+local function handle_timer_resume(context_uri, offset, position_ms)
   if not position_ms then
     position_ms = 0
   end
 
-  api.resume_track(position_ms, function(resume_response, resume_headers, status_code)
+  api.resume_track(context_uri, offset, position_ms, function(resume_response, resume_headers, status_code)
     if status_code == 200 or status_code == 204 then
       playback_timer.resume(timer)
     else
-      logger.error('Unable to resume current track:\nStatus Code: %s\nError: %s', status_code, resume_response)
+      logger.error('Unable to resume current track:\nStatus Code: %s\nError: %s', status_code, vim.inspect(resume_response))
     end
   end)
 end
@@ -90,6 +92,11 @@ end
 ---Module setup function
 function M.setup(user_config)
   config.setup(user_config or {})
+
+  if not config.get().enabled then
+    logger.info 'Playback module not enabled. Skipping module registration'
+    return
+  end
 
   commands.setup()
 
@@ -116,6 +123,38 @@ function M.toggle_window()
   interface.create_window()
   start_timer()
   interface.is_showing = true
+end
+
+function M.pause()
+  if not playback_info then
+    logger.error 'Playback has not started. Unable to pause'
+    return
+  end
+
+  if playback_info and not playback_info.playing then
+    logger.info 'Track already paused'
+    return
+  end
+
+  handle_timer_pause()
+end
+
+function M.resume()
+  if not playback_info then
+    logger.error 'Playback has not started. Unable to resume.'
+    return
+  end
+
+  if playback_info and playback_info.playing then
+    logger.info 'Track is already playing'
+    return
+  end
+
+  if not playback_info.current_ms then
+    playback_info.current_ms = 0
+  end
+
+  handle_timer_resume(playback_info.context_uri, nil, playback_info.current_ms)
 end
 
 return M

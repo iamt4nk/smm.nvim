@@ -49,24 +49,28 @@ function M.pause_track(callback)
   end
 end
 
+---@param context_uri string|nil
+---@param offset integer|nil
 ---@param position_ms integer
 ---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
-function M.resume_track(position_ms, callback)
+function M.resume_track(context_uri, offset, position_ms, callback)
   local auth_info = require('smm.spotify').auth_info
 
+  local body = {
+    context_uri = context_uri,
+    position_ms = position_ms,
+  }
+
+  if offset then
+    body['offset'] = {
+      position = offset,
+    }
+  end
+
   if check_scope(auth_info.scope, 'user-modify-playback-state') then
-    api.put(
-      base_url .. '/me/player/play',
-      {
-        ['Content-Type'] = 'application/json',
-      },
-      nil,
-      {
-        position_ms = position_ms,
-      },
-      auth_info.access_token,
-      callback
-    )
+    api.put(base_url .. '/me/player/play', {
+      ['Content-Type'] = 'application/json',
+    }, nil, body, auth_info.access_token, callback)
   else
     logger.error 'Unable to run API Request: Resume Track. - Permissions not available'
   end
