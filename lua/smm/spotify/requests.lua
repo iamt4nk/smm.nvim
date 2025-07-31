@@ -9,7 +9,6 @@ local base_url = 'https://api.spotify.com/v1'
 ---@param scope_required string
 ---@return boolean
 local function check_scope(available_scope, scope_required)
-  print(vim.inspect(available_scope))
   if available_scope:find(scope_required, 1, true) then
     return true
   end

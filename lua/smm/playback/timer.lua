@@ -67,6 +67,8 @@ function M.start(timer)
       end
     end)
   )
+  logger.debug('Started timer: %s', vim.inspect(timer.timer))
+  logger.debug(debug.traceback())
 end
 
 ---@param timer SMM_PlaybackTimer
@@ -90,10 +92,9 @@ function M.close(timer)
   M.pause(timer)
   logger.debug 'Resetting timer'
   M.reset(timer)
-  logger.debug 'Stopping underlying timer object'
-  local success, _, _ = timer.timer:stop()
-  logger.debug('Timer stopped exit code: %d', success)
-  timer.timer = nil
+  logger.debug 'Closing underlying timer object'
+  timer.timer:close()
+  logger.debug('Closed timer: %s', vim.inspect(timer.timer))
 end
 
 return M

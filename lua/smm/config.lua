@@ -4,7 +4,7 @@ local M = {}
 
 local default_config = {
   initialized = false,
-  debug = true,
+  debug = false,
   -- file = '/home/klanum/smm_log.txt',
 
   example_module = {
@@ -18,6 +18,8 @@ local default_config = {
     timer_sync_interval = 5000,
     interface = {
       playback_pos = 'BottomRight', ---@type SMM_PlaybackWindowPosition
+      playback_width = 40,
+      progress_bar_width = 35,
     },
   },
 

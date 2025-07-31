@@ -1,3 +1,5 @@
+local logger = require 'smm.utils.logger'
+
 ---@param ms integer
 ---@return string
 local function convert_ms_to_timestamp(ms)
@@ -38,17 +40,19 @@ end
 function M.format_playback_lines(playback_info)
   local playback_lines = {}
 
-  if not playback_info then
-    playback_lines:insert 'No track currently playing'
-  else
-    playback_lines:insert('Artist: ' .. playback_info['artist'])
-    playback_lines:insert('Track: ' .. playback_info['track'])
-    playback_lines:insert('Current: ' .. convert_ms_to_timestamp(playback_info['current_ms']))
-    playback_lines:insert('Duration: ' .. convert_ms_to_timestamp(playback_info['duration_ms']))
+  logger.debug('Playback Info: %s', vim.inspect(playback_info))
 
-    local progress = math.floor((playback_info['time'] / playback_info['duration']) * 20)
-    local bar = '[' .. string.rep('=', progress) .. string.rep(' ', 20 - progress) .. ']'
-    playback_lines:insert(bar)
+  if not playback_info then
+    table.insert(playback_lines, 'No track currently playing')
+  else
+    table.insert(playback_lines, 'Artist: ' .. playback_info['artist'])
+    table.insert(playback_lines, 'Track: ' .. playback_info['track'])
+    table.insert(playback_lines, 'Current: ' .. convert_ms_to_timestamp(playback_info['current_ms']))
+    table.insert(playback_lines, 'Duration: ' .. convert_ms_to_timestamp(playback_info['duration_ms']))
+
+    local progress = math.floor((playback_info['current_ms'] / playback_info['duration_ms']) * 34)
+    local bar = '[' .. string.rep('=', progress) .. string.rep(' ', 34 - progress) .. ']'
+    table.insert(playback_lines, bar)
   end
 
   playback_lines = M.pad_lines(playback_lines, 1, 2, 1, 2)

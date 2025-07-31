@@ -22,21 +22,22 @@ local function handle_timer_sync(callback)
   api.get_playback_state(function(playback_response, playback_headers, status_code)
     if status_code == 200 or status_code == 204 then
       logger.debug('Playback Response:\n%s', vim.inspect(playback_response))
+      logger.debug('Playback Response headers:\n%s', vim.inspect(playback_headers))
 
       playback_info = utils.get_playbackinfo(playback_response)
 
-      if playback_info and playback_info ~= '' and playback_info.current_ms and playback_info.playing ~= nil then
+      if (playback_info and playback_info.current_ms and playback_info.playing ~= nil) and playback_info ~= '' then
+        logger.debug('Calling back: %s %s', playback_info.current_ms, playback_info.playing)
         callback {
           current_pos = playback_info.current_ms,
           is_playing = playback_info.playing,
         }
       else
+        logger.debug 'Callback: nil'
         callback(nil)
       end
     else
-      vim.schedule(function()
-        logger.error('Getting playback state failed:\nStatus Code: %s', status_code)
-      end)
+      logger.error('Getting playback state failed:\nStatus Code: %s', status_code)
     end
   end)
 end
@@ -44,7 +45,7 @@ end
 ---@param current_ms integer|nil Current position in milliseconds
 local function handle_timer_update(current_ms)
   if not playback_info or not current_ms then
-    interface.update_window { 'No track currently playing' }
+    interface.update_window(nil)
     return
   end
 
@@ -77,6 +78,15 @@ local function handle_timer_resume(position_ms)
   end)
 end
 
+local function start_timer()
+  timer = playback_timer.create_timer {
+    update = handle_timer_update,
+    sync = handle_timer_sync,
+  }
+
+  playback_timer.start(timer)
+end
+
 ---Module setup function
 function M.setup(user_config)
   config.setup(user_config or {})
@@ -97,22 +107,15 @@ function M.toggle_window()
       logger.debug 'Removing timer'
       playback_timer.close(timer)
     end
+
     interface.is_showing = false
     return
   end
 
   logger.debug 'Showing window'
   interface.create_window()
+  start_timer()
   interface.is_showing = true
-end
-
-function M.start_timer()
-  timer = playback_timer.create_timer {
-    update = handle_timer_update,
-    sync = handle_timer_sync,
-  }
-
-  playback_timer.start(timer)
 end
 
 return M

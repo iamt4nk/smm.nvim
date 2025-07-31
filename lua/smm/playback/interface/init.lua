@@ -1,5 +1,6 @@
 local config = require 'smm.playback.interface.config'
 local utils = require 'smm.playback.interface.utils'
+local logger = require 'smm.utils.logger'
 
 local M = {}
 
@@ -89,11 +90,15 @@ function M.update_window(playback_info)
   vim.schedule(function()
     local lines = utils.format_playback_lines(playback_info)
 
-    local width = 40
+    local width = config.get().playback_width
     local height = #lines
+
+    win_opts['width'] = width
+    win_opts['height'] = height
 
     set_window_pos(width, height)
 
+    logger.debug('Window Options: %s', win_opts)
     vim.api.nvim_win_set_config(win, win_opts)
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   end)

@@ -13,7 +13,6 @@ function M.setup()
 
   vim.api.nvim_create_user_command('Spotify', function()
     playback.toggle_window()
-    playback.start_timer()
   end, { desc = 'Open the Spotify plugin and authenticate' })
 end
 
