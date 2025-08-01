@@ -15,7 +15,6 @@ local function check_scope(available_scope, scope_required)
   return false
 end
 
----@param auth_info SMM_AuthInfo
 ---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
 function M.get_user_profile(callback)
   local auth_info = require('smm.spotify').auth_info
@@ -57,15 +56,20 @@ function M.resume_track(context_uri, offset, position_ms, callback)
   local auth_info = require('smm.spotify').auth_info
 
   local body = {
-    context_uri = context_uri,
     position_ms = position_ms,
   }
+
+  if context_uri then
+    body['context_uri'] = context_uri
+  end
 
   if offset then
     body['offset'] = {
       position = offset,
     }
   end
+
+  logger.debug('Request body: %s', vim.json.encode(body))
 
   if check_scope(auth_info.scope, 'user-modify-playback-state') then
     api.put(base_url .. '/me/player/play', {

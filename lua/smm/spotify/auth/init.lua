@@ -39,7 +39,6 @@ function M.initiate_oauth_flow()
   local oauth_url, redirect_uri, code_verifier, state = get_oauth_info()
   local port = config.get_value 'callback_port'
 
-  print(oauth_url)
   os_utils.open_browser(oauth_url)
 
   local oauth_code = sock.start_server(port, state)

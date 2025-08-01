@@ -1,5 +1,4 @@
 local config = require 'smm.playback.config'
-local commands = require 'smm.playback.commands'
 
 local api = require 'smm.spotify.requests'
 local playback_timer = require 'smm.playback.timer'
@@ -36,6 +35,7 @@ local function handle_timer_sync(callback)
         logger.debug 'Callback: nil'
         callback(nil)
       end
+    elseif status_code == 401 then
     else
       logger.error('Getting playback state failed:\nStatus Code: %s\nError: %s', status_code, playback_response)
     end
@@ -63,15 +63,13 @@ local function handle_timer_pause()
   end)
 end
 
----@param context_uri string|nil
----@param offset integer|nil
 ---@param position_ms integer|nil
-local function handle_timer_resume(context_uri, offset, position_ms)
+local function handle_timer_resume(position_ms)
   if not position_ms then
     position_ms = 0
   end
 
-  api.resume_track(context_uri, offset, position_ms, function(resume_response, resume_headers, status_code)
+  api.resume_track(nil, nil, position_ms, function(resume_response, resume_headers, status_code)
     if status_code == 200 or status_code == 204 then
       playback_timer.resume(timer)
     else
@@ -97,8 +95,6 @@ function M.setup(user_config)
     logger.info 'Playback module not enabled. Skipping module registration'
     return
   end
-
-  commands.setup()
 
   logger.debug 'Initializing playback interface'
   interface.setup(config.get().interface)
@@ -154,7 +150,7 @@ function M.resume()
     playback_info.current_ms = 0
   end
 
-  handle_timer_resume(playback_info.context_uri, nil, playback_info.current_ms)
+  handle_timer_resume(playback_info.current_ms)
 end
 
 return M

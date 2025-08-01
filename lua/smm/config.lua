@@ -7,11 +7,6 @@ local default_config = {
   debug = false,
   -- file = '/home/klanum/smm_log.txt',
 
-  example_module = {
-    enabled = true,
-    some_setting = 'default_value',
-  },
-
   playback = {
     enabled = true,
     timer_update_interval = 100,
