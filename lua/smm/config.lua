@@ -21,11 +21,11 @@ local default_config = {
   spotify = {
     enabled = true,
     auth = {
+      premium = true,
       enabled = true,
       client_id = 'c43057d088204249bca8d5bde4e93bd3',
       callback_url = 'http://127.0.0.1',
       callback_port = 8080,
-      premium = true,
     },
   },
 }

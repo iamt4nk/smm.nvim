@@ -18,7 +18,7 @@ end
 ---@param auth_info SMM_AuthInfo
 local function check_session(auth_info)
   local current_time = os.time()
-  logger.debug('Current Time: %d\nSession Expires at: %d\nSession remaining time: %d', current_time, auth_info.expires_at, auth_info.expires_at - current_time))
+  logger.debug('Current Time: %d\nSession Expires atw %d\nSession remaining time: %d', current_time, auth_info.expires_at, auth_info.expires_at - current_time)
   if auth_info.expires_at < current_time + 30 then
     local spotify = require 'smm.spotify'
     local auth = require 'smm.spotify.auth'
