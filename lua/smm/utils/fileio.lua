@@ -6,7 +6,7 @@ local M = {}
 ---@param data string
 ---@return boolean
 function M.write_data(path, data)
-  local file = io.open(get_token_path(), 'w')
+  local file = io.open(path, 'w')
   if not file then
     logger.debug('Failed to open %s to save data.', path)
     return false

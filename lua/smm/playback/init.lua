@@ -35,7 +35,6 @@ local function handle_timer_sync(callback)
         logger.debug 'Callback: nil'
         callback(nil)
       end
-    elseif status_code == 401 then
     else
       logger.error('Getting playback state failed:\nStatus Code: %s\nError: %s', status_code, playback_response)
     end

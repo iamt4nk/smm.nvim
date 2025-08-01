@@ -21,31 +21,33 @@ local function log(level, message, ...)
     return
   end
 
-  -- Always show ERROR and WARN, only show INFO/DEBUG in debug mode
+  -- Always show INFO, ERROR, and WARN, only show DEBUG in debug mode
   local should_log = log_config.level > 1 or debug_level
 
-  if should_log then
-    local formatted_msg = ''
-    if ... then
-      formatted_msg = string.format(message, ...)
-    else
-      formatted_msg = message
-    end
-    local full_message = string.format('%s smm.nvim %s', log_config.prefix, formatted_msg)
+  if not should_log then
+    return
+  end
 
-    if not log_file or log_file == '' then
-      if level == 4 then
-        error(full_message)
-      end
-      print(full_message)
-    else
-      local file = io.open(log_file, 'a+')
-      if not file then
-        error 'Failed to open log file'
-      end
-      file:write(full_message .. '\n')
-      file:close()
+  local formatted_msg = ''
+  if ... then
+    formatted_msg = string.format(message, ...)
+  else
+    formatted_msg = message
+  end
+  local full_message = string.format('%s smm.nvim %s', log_config.prefix, formatted_msg)
+
+  if not log_file or log_file == '' then
+    if level == 4 then
+      error(full_message)
     end
+    print(full_message)
+  else
+    local file = io.open(log_file, 'a+')
+    if not file then
+      error 'Failed to open log file'
+    end
+    file:write(full_message .. '\n')
+    file:close()
   end
 end
 

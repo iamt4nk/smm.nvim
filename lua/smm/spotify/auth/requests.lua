@@ -2,7 +2,7 @@ local config = require 'smm.spotify.auth.config'
 local api_sync = require 'smm.utils.api_sync'
 local logger = require 'smm.utils.logger'
 
----@alias SMM_AuthInfo { access_token: string, token_type: string, expires_in: integer, refresh_token: string, scope: string }
+---@alias SMM_AuthInfo { access_token: string, token_type: string, expires_in: integer, expires_at: integer, refresh_token: string, scope: string }
 
 local M = {}
 
@@ -31,7 +31,13 @@ function M.get_access_token(code, code_verifier, redirect_uri)
     body = body,
   }
 
+  if status_code == 400 then
+    logger.error('Unable to authenticate. Returned status code: %s', code)
+  end
+
   logger.debug('Response: %s', vim.inspect(response_body))
+
+  response_body['expires_at'] = os.time() + response_body.expires_in
 
   return response_body
 end
@@ -58,7 +64,10 @@ function M.refresh_access_token(refresh_token)
     logger.error('Unable to authenticate. Returned status code: %s', code)
   end
 
+  response_body['expires_at'] = os.time() + response_body.expires_in
+
   response_body.refresh_token = response_body.refresh_token or refresh_token
+
   return response_body
 end
 
