@@ -36,7 +36,7 @@ local function handle_timer_sync(callback)
         callback(nil)
       end
     else
-      logger.error('Getting playback state failed:\nStatus Code: %s\nError: %s', status_code, playback_response)
+      logger.error('Getting playback state failed:\nStatus Code: %s\nError: %s', status_code, vim.inspect(playback_response))
     end
   end)
 end

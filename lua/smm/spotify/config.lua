@@ -2,7 +2,7 @@ local logger = require 'smm.utils.logger'
 
 local M = {}
 
----@alias SMM_SpotifyConfig { auth: SMM_SpotifyAuthConfig }
+---@alias SMM_SpotifyConfig { enabled: boolean, auth: SMM_SpotifyAuthConfig,  }
 
 ---@type SMM_SpotifyConfig
 local config = {}

@@ -1,9 +1,9 @@
 local logger = require 'smm.utils.logger'
 
+---@alias SMM_Config { debug: boolean, playback: SMM_PlaybackConfig, spotify: SMM_SpotifyConfig }
 local M = {}
 
 local default_config = {
-  initialized = false,
   debug = false,
   -- file = '/home/klanum/smm_log.txt',
 
@@ -32,6 +32,7 @@ local default_config = {
 
 local config = {}
 
+---@param user_config SMM_Config
 function M.setup(user_config)
   if user_config.debug == nil then
     user_config.debug = false
