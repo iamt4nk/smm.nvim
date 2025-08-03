@@ -77,4 +77,3 @@ Which will close the playback window.
 
 
 **NOTE**: Spotify Apps that use the [Spotify Web API](https://developer.spotify.com/documentation/web-api) do not allow you to specify a webhook. This pretty much means that the only thing we can do on the plugin is send requests every so often to sync with the servers.
-
