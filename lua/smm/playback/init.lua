@@ -1,10 +1,13 @@
 local config = require 'smm.playback.config'
+local spotify = require 'smm.spotify'
 
 local api = require 'smm.spotify.requests'
 local playback_timer = require 'smm.playback.timer'
 local utils = require 'smm.playback.utils'
 local logger = require 'smm.utils.logger'
 local interface = require 'smm.playback.interface'
+
+---@alias SMM_SyncData { is_playing: boolean, current_pos: integer }
 
 ---@type SMM_PlaybackInfo|nil
 local playback_info = nil
@@ -35,6 +38,9 @@ local function handle_timer_sync(callback)
         logger.debug 'Callback: nil'
         callback(nil)
       end
+    elseif status_code >= 500 or status_code <= 510 then
+      logger.warn 'Received status code: %d - Will try again next sync'
+      callback(nil)
     else
       logger.error('Getting playback state failed:\nStatus Code: %s\nError: %s', status_code, vim.inspect(playback_response))
     end
@@ -42,14 +48,19 @@ local function handle_timer_sync(callback)
 end
 
 ---@param current_ms integer|nil Current position in milliseconds
+---@return boolean -- Returns whether or not to force a re-sync
 local function handle_timer_update(current_ms)
   if not playback_info or not current_ms then
     interface.update_window(nil)
-    return
+    return false
   end
 
+  if playback_info.current_ms >= playback_info.duration_ms - 200 then
+    return true
+  end
   playback_info.current_ms = current_ms
   interface.update_window(playback_info)
+  return false
 end
 
 local function handle_timer_pause()
@@ -114,6 +125,7 @@ function M.toggle_window()
     return
   end
 
+  spotify.authenticate()
   logger.debug 'Showing window'
   interface.create_window()
   start_timer()

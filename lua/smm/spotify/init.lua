@@ -7,7 +7,7 @@ local M = {}
 
 M.auth_info = nil
 
-local function authenticate()
+function M.authenticate()
   local refresh_token = token.load_refresh_token()
 
   if not refresh_token then
@@ -26,10 +26,6 @@ function M.setup(user_config)
 
   logger.debug 'Initializing Spotify - Auth Module Config'
   auth.setup(user_config.auth)
-
-  if M.auth_info == nil then
-    authenticate()
-  end
 end
 
 return M

@@ -1,8 +1,6 @@
 local logger = require 'smm.utils.logger'
 local config = require 'smm.playback.config'
 
----@alias SMM_SyncData { is_playing: boolean, current_pos: integer }
-
 ---@class SMM_PlaybackTimer
 ---@field current_pos integer The current position in milliseconds
 ---@field update_interval integer How often the timer should update
@@ -12,6 +10,9 @@ local config = require 'smm.playback.config'
 ---@field is_syncing boolean whether we are currently syncing. Important so we don't issue multiple syncs at once.
 ---@field sync fun(callback: fun(sync_data: SyncData)) Method to run, provided by the caller to sync with Spotify servers
 ---@field last_sync_time integer When the last sync time occurred
+---@field next_sync_override integer In case a sync needs to occur sooner
+---@field consecutive_failures integer For tracking consecutive failures
+---@field backoff_multiplier integer Multiplier for backoff in case too many 500s
 ---@field timer uv_timer_t The underlying timer object
 
 local M = {}
@@ -29,6 +30,9 @@ function M.create_timer(opts)
     sync = opts.sync and opts.sync or nil,
     last_sync_time = 0,
     timer = vim.uv.new_timer(),
+    next_sync_override = nil,
+    consecutive_failures = 0,
+    backoff_multiplier = 1,
   }
 end
 
@@ -38,9 +42,17 @@ function M.start(timer)
     0,
     timer.update_interval,
     vim.schedule_wrap(function()
+      local override_sync = false
+      if timer.is_updating then
+        timer.current_pos = timer.current_pos + timer.update_interval
+        if timer.update then
+          override_sync = timer.update(timer.current_pos)
+        end
+      end
+
       if not timer.is_syncing then
         local current_time = vim.loop.now()
-        if current_time - timer.last_sync_time >= timer.sync_interval then
+        if override_sync or (current_time - timer.last_sync_time >= timer.sync_interval) then
           if timer.sync then
             timer.is_syncing = true
             timer.last_sync_time = current_time
@@ -56,13 +68,6 @@ function M.start(timer)
             end)
           end
           timer.is_syncing = false
-        end
-      end
-
-      if timer.is_updating then
-        timer.current_pos = timer.current_pos + timer.update_interval
-        if timer.update then
-          timer.update(timer.current_pos)
         end
       end
     end)

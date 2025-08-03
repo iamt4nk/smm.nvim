@@ -1,5 +1,7 @@
 local api = require 'smm.utils.api_async'
 local logger = require 'smm.utils.logger'
+local utils = require 'smm.spotify.utils'
+local config = require 'smm.spotify.config'
 
 local M = {}
 
@@ -20,14 +22,7 @@ local function check_session(auth_info)
   local current_time = os.time()
   logger.debug('Current Time: %d\nSession Expires atw %d\nSession remaining time: %d', current_time, auth_info.expires_at, auth_info.expires_at - current_time)
   if auth_info.expires_at < current_time + 30 then
-    local spotify = require 'smm.spotify'
-    local auth = require 'smm.spotify.auth'
-    local token = require 'smm.spotify.token'
-
-    local new_auth_info = auth.refresh_access_token(auth_info.refresh_token)
-    spotify.auth_info = new_auth_info
-    token.delete_refresh_token()
-    token.save_refresh_token(new_auth_info.refresh_token)
+    require('smm.spotify').authenticate()
   end
 end
 

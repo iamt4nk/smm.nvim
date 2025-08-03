@@ -69,5 +69,6 @@ To stop the playback, simply run the same command.
 
 ### Other Commands
 There are a few other commands you can currently run if you are a Spotify Premium User:
-- `:Spotify pause`: Pauses current song
-- `:Spotify resume`: Resumes current song
+- `:Spotify pause`: Pauses current song  
+- `:Spotify resume`: Resumes current song  
+- `:Spotify auth`: Re-authorizes with the Spotify app in case there are issues
