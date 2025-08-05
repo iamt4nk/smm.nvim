@@ -4,7 +4,7 @@ local logger = require 'smm.utils.logger'
 
 local M = {}
 
----@param headers table|nil
+---@param headers table?
 ---@return table
 local function prepare_headers(headers, access_token)
   if not headers then
@@ -54,8 +54,8 @@ end
 
 ---Make a GET Request
 ---@param url string The base URL
----@param headers table|nil Optional headers
----@param query table|nil
+---@param headers table? Optional headers
+---@param query table?
 ---@param access_token string
 ---@param callback fun(response_body: table|string, response_headers: table, status_code: integer) Callback Function
 function M.get(url, headers, query, access_token, callback)
@@ -74,8 +74,8 @@ end
 
 ---Make a POST Request
 ---@param url string The base URL
----@param headers table|nil Optional headers
----@param query table|nil Optional Query
+---@param headers table? Optional headers
+---@param query table? Optional Query
 ---@param body table|string Required Body (will be encoded as JSON if Content-Type not specified)
 ---@param access_token string
 ---@param callback fun(response_body: table|string, response_headers: table, status_code: integer) Callback Function
@@ -114,9 +114,9 @@ end
 
 --- Make a PUT Request
 ---@param url string The base URL
----@param headers table|nil Optional Headers
----@param query table|nil Optional Query
----@param body table|string|nil Request body (will be encoded as JSON if Content-Type not specified)
+---@param headers table? Optional Headers
+---@param query table? Optional Query
+---@param body table|string? Request body (will be encoded as JSON if Content-Type not specified)
 ---@param access_token string Authorization Access Token
 ---@param callback fun(response_body: table|string, response_headers: table, status_code: integer) Callback Function
 function M.put(url, headers, query, body, access_token, callback)

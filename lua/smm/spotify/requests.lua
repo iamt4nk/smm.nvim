@@ -1,11 +1,16 @@
 local api = require 'smm.utils.api_async'
 local logger = require 'smm.utils.logger'
-local utils = require 'smm.spotify.utils'
 local config = require 'smm.spotify.config'
 
 local M = {}
 
 local base_url = 'https://api.spotify.com/v1'
+
+---@type integer
+M.api_retry_max = 0
+
+---@type integer
+M.api_retry_backoff = 0
 
 ---@param available_scope string
 ---@param scope_required string
@@ -26,8 +31,17 @@ local function check_session(auth_info)
   end
 end
 
+---@param api function
+---@param callback function
+local function retry(api, callback) end
+
 ---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
-function M.get_user_profile(callback)
+---@param retry? boolean
+function M.get_user_profile(callback, retry)
+  if retry == nil then
+    retry = true
+  end
+
   local auth_info = require('smm.spotify').auth_info
 
   if check_scope(auth_info.scope, 'user-read-private') then
@@ -39,7 +53,12 @@ function M.get_user_profile(callback)
 end
 
 ---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
-function M.get_playback_state(callback)
+---@param retry? boolean
+function M.get_playback_state(callback, retry)
+  if retry == nil then
+    retry = true
+  end
+
   local auth_info = require('smm.spotify').auth_info
 
   if check_scope(auth_info.scope, 'user-read-playback-state') then
@@ -51,7 +70,12 @@ function M.get_playback_state(callback)
 end
 
 ---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
-function M.pause_track(callback)
+---@param retry? boolean
+function M.pause_track(callback, retry)
+  if retry == nil then
+    retry = true
+  end
+
   local auth_info = require('smm.spotify').auth_info
 
   if check_scope(auth_info.scope, 'user-modify-playback-state') then
@@ -62,11 +86,16 @@ function M.pause_track(callback)
   end
 end
 
----@param context_uri string|nil
----@param offset integer|nil
+---@param context_uri string?
+---@param offset integer?
 ---@param position_ms integer
 ---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
-function M.resume_track(context_uri, offset, position_ms, callback)
+---@param retry? boolean
+function M.resume_track(context_uri, offset, position_ms, callback, retry)
+  if retry == nil then
+    retry = true
+  end
+
   local auth_info = require('smm.spotify').auth_info
 
   local body = {
