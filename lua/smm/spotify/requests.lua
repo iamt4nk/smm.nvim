@@ -1,6 +1,5 @@
 local api = require 'smm.utils.api_async'
 local logger = require 'smm.utils.logger'
-local config = require 'smm.spotify.config'
 
 local M = {}
 
@@ -31,56 +30,129 @@ local function check_session(auth_info)
   end
 end
 
----@param api function
+---@param api_func function
 ---@param callback function
-local function retry(api, callback) end
+---@param retry_count? integer
+local function retry(api_func, callback, retry_count)
+  retry_count = retry_count or 1
 
+  if retry_count > M.api_retry_max then
+    logger.error('Max retries (%d) reached for API call', M.api_retry_max)
+    return
+  end
+
+  logger.debug('API Attempt: %d/%d', retry_count, M.api_retry_max)
+
+  vim.defer_fn(function()
+    api_func(function(response_body, response_headers, status_code)
+      callback(response_body, response_headers, status_code)
+    end)
+  end, M.api_retry_backoff)
+end
+
+---Gets user profile. Sends retry on server error by default unless overridden
 ---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
----@param retry? boolean
-function M.get_user_profile(callback, retry)
-  if retry == nil then
-    retry = true
+---@param retry_override? boolean
+function M.get_user_profile(callback, retry_override)
+  if retry_override == nil then
+    retry_override = false
   end
 
   local auth_info = require('smm.spotify').auth_info
 
   if check_scope(auth_info.scope, 'user-read-private') then
     check_session(auth_info)
-    api.get(base_url .. '/me', nil, nil, auth_info.access_token, callback)
+    local api_func = function(api_callback)
+      api.get(base_url .. '/me', nil, nil, auth_info.access_token, api_callback)
+    end
+
+    api_func(function(response_body, response_headers, status_code)
+      local should_retry = false
+      if status_code >= 500 and status_code < 600 then
+        should_retry = true
+      elseif status_code == 429 then
+        should_retry = true
+      end
+
+      if should_retry and not retry_override then
+        logger.warn 'API returned Server error. Retrying'
+        retry(api_func, callback)
+      else
+        callback(response_body, response_headers, status_code)
+      end
+    end)
   else
     logger.error 'Unable to run API request: Get User Profile. - Permissions not available'
   end
 end
 
 ---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
----@param retry? boolean
-function M.get_playback_state(callback, retry)
-  if retry == nil then
-    retry = true
+---@param retry_override? boolean
+function M.get_playback_state(callback, retry_override)
+  if retry_override == nil then
+    retry_override = false
   end
 
   local auth_info = require('smm.spotify').auth_info
 
   if check_scope(auth_info.scope, 'user-read-playback-state') then
     check_session(auth_info)
-    api.get(base_url .. '/me/player', nil, nil, auth_info.access_token, callback)
+
+    local api_func = function(api_callback)
+      api.get(base_url .. '/me/player', nil, nil, auth_info.access_token, api_callback)
+    end
+
+    api_func(function(response_body, response_headers, status_code)
+      local should_retry = false
+      if status_code >= 500 and status_code < 600 then
+        logger.warn 'API returned Server error. Retrying'
+        should_retry = true
+      elseif status_code == 429 then
+        should_retry = true
+      end
+
+      if should_retry and not retry_override then
+        retry(api_func, callback)
+      else
+        callback(response_body, response_headers, status_code)
+      end
+    end)
   else
     logger.error 'Unable to run API request: Get User Playback State. - Permissions not available'
   end
 end
 
 ---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
----@param retry? boolean
-function M.pause_track(callback, retry)
-  if retry == nil then
-    retry = true
+---@param retry_override? boolean
+function M.pause_track(callback, retry_override)
+  if retry_override == nil then
+    retry_override = false
   end
 
   local auth_info = require('smm.spotify').auth_info
 
   if check_scope(auth_info.scope, 'user-modify-playback-state') then
     check_session(auth_info)
-    api.put(base_url .. '/me/player/pause', nil, nil, nil, auth_info.access_token, callback)
+
+    local api_func = function(api_callback)
+      api.put(base_url .. '/me/player/pause', nil, nil, nil, auth_info.access_token, api_callback)
+    end
+
+    api_func(function(response_body, response_headers, status_code)
+      local should_retry = false
+      if status_code >= 500 and status_code < 600 then
+        logger.warn 'API returned Server error. Retrying'
+        should_retry = true
+      elseif status_code == 429 then
+        should_retry = true
+      end
+
+      if should_retry and not retry_override then
+        retry(api_func, callback)
+      else
+        callback(response_body, response_headers, status_code)
+      end
+    end)
   else
     logger.error 'Unable to run API Request: Pause Track. - Permissions not available'
   end
@@ -90,10 +162,10 @@ end
 ---@param offset integer?
 ---@param position_ms integer
 ---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
----@param retry? boolean
-function M.resume_track(context_uri, offset, position_ms, callback, retry)
-  if retry == nil then
-    retry = true
+---@param retry_override? boolean
+function M.resume_track(context_uri, offset, position_ms, callback, retry_override)
+  if retry_override == nil then
+    retry_override = false
   end
 
   local auth_info = require('smm.spotify').auth_info
@@ -116,9 +188,28 @@ function M.resume_track(context_uri, offset, position_ms, callback, retry)
 
   if check_scope(auth_info.scope, 'user-modify-playback-state') then
     check_session(auth_info)
-    api.put(base_url .. '/me/player/play', {
-      ['Content-Type'] = 'application/json',
-    }, nil, body, auth_info.access_token, callback)
+
+    local api_func = function(api_callback)
+      api.put(base_url .. '/me/player/play', {
+        ['Content-Type'] = 'application/json',
+      }, nil, body, auth_info.access_token, api_callback)
+    end
+
+    api_func(function(response_body, response_headers, status_code)
+      local should_retry = false
+      if status_code >= 500 and status_code < 600 then
+        logger.warn 'API returned Server error. Retrying'
+        should_retry = true
+      elseif status_code == 429 then
+        should_retry = true
+      end
+
+      if should_retry and not retry_override then
+        retry(api_func, callback)
+      else
+        callback(response_body, response_headers, status_code)
+      end
+    end)
   else
     logger.error 'Unable to run API Request: Resume Track. - Permissions not available'
   end
