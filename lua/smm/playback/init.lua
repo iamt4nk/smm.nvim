@@ -44,7 +44,7 @@ local function handle_timer_sync(callback)
     else
       logger.error('Getting playback state failed:\nStatus Code: %s\nError: %s', status_code, vim.inspect(playback_response))
     end
-  end)
+  end, true)
 end
 
 ---@param current_ms integer|nil Current position in milliseconds

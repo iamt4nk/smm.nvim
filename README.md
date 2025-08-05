@@ -33,6 +33,8 @@ LazyVim:
       },
 
       spotify = {
+         api_retry_max = 3,               -- The number of times to retry before failing out.
+         api_retry_backoff = 2000,
          auth = {
             premium = true,
          },
