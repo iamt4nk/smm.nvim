@@ -2,12 +2,13 @@ local auth = require 'smm.spotify.auth'
 local token = require 'smm.spotify.token'
 local config = require 'smm.spotify.config'
 local logger = require 'smm.utils.logger'
+local requests = require 'smm.spotify.requests'
 
 local M = {}
 
 M.auth_info = nil
 
-local function authenticate()
+function M.authenticate()
   local refresh_token = token.load_refresh_token()
 
   if not refresh_token then
@@ -24,12 +25,12 @@ end
 function M.setup(user_config)
   config.setup(user_config)
 
+  --- Inject retry configurations into the requests module specifically
+  requests.api_retry_max = config.get().api_retry_max
+  requests.api_retry_backoff = config.get().api_retry_backoff
+
   logger.debug 'Initializing Spotify - Auth Module Config'
   auth.setup(user_config.auth)
-
-  if M.auth_info == nil then
-    authenticate()
-  end
 end
 
 return M
