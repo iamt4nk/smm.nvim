@@ -20,6 +20,8 @@ local default_config = {
 
   spotify = {
     enabled = true,
+    api_retry_max = 3,
+    api_retry_backoff = 2000,
     auth = {
       premium = true,
       enabled = true,
