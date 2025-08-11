@@ -28,10 +28,10 @@ local function handle_timer_sync(callback)
 
       playback_info = utils.get_playbackinfo(playback_response)
 
-      if (playback_info and playback_info.current_ms and playback_info.playing ~= nil) and playback_info ~= '' then
-        logger.debug('Calling back: %s %s', playback_info.current_ms, playback_info.playing)
+      if (playback_info and playback_info.progress_ms and playback_info.playing ~= nil) and playback_info ~= '' then
+        logger.debug('Calling back: %s %s', playback_info.progress_ms, playback_info.playing)
         callback {
-          current_pos = playback_info.current_ms,
+          current_pos = playback_info.progress_ms,
           is_playing = playback_info.playing,
         }
       else
@@ -55,10 +55,10 @@ local function handle_timer_update(current_ms)
     return false
   end
 
-  if playback_info.current_ms >= playback_info.duration_ms - 200 then
+  if playback_info.progress_ms >= playback_info.track.duration_ms - 200 then
     return true
   end
-  playback_info.current_ms = current_ms
+  playback_info.progress_ms = current_ms
   interface.update_window(playback_info)
   return false
 end
@@ -157,11 +157,11 @@ function M.resume()
     return
   end
 
-  if not playback_info.current_ms then
-    playback_info.current_ms = 0
+  if not playback_info.progress_ms then
+    playback_info.progress_ms = 0
   end
 
-  handle_timer_resume(playback_info.current_ms)
+  handle_timer_resume(playback_info.progress_ms)
 end
 
 return M
