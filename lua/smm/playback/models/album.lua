@@ -20,6 +20,7 @@ function Album:new(album_data)
   local instance = BaseMedia:new(album_data)
 
   -- Add album-specific properties
+  ---@cast instance SMM_Album
   instance.artists = album_data.artists or {}
   instance.album_type = album_data.album_type or 'album'
   instance.total_tracks = album_data.total_tracks or 0
@@ -34,3 +35,43 @@ function Album:new(album_data)
   setmetatable(instance, self)
   return instance
 end
+
+---@return string
+function Album:get_primary_artist()
+  return (#self.artists > 0) and self.artists[1].name or 'Unknown Artist'
+end
+
+---@return string|nil -- URL of the largest available image
+function Album:get_cover_art_url()
+  if #self.images == 0 then
+    return nil
+  end
+
+  -- Return the largest image
+  local largest = self.images[1]
+  for _, image in ipairs(self.images) do
+    if image.width and largest.width and image.width > largest.width then
+      largest = image
+    end
+  end
+
+  return largest.url
+end
+
+---@return string
+function Album:get_release_year()
+  return self.release_date:match '^%d%d%d%d' or 'Unknown'
+end
+
+---@return string -- Formatted album info (e.g., "Album - 2023 - 12 tracks")
+function Album:get_formatted_info()
+  local type_display = self.album_type:gsub('^%l', string.upper)
+  local year = self:get_release_year()
+  local track_text = self.total_tracks == 1 and 'track' or 'tracks'
+
+  return string.format('%s | %s | %d %s', type_display, year, self.total_tracks, track_text)
+end
+
+local M = {}
+M.Album = Album
+return M

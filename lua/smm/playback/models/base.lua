@@ -1,5 +1,3 @@
-local M = {}
-
 ---@alias SMM_MediaType 'track'
 --- | 'album'
 --- | 'artist'
@@ -28,3 +26,17 @@ function BaseMedia:new(media_data)
   setmetatable(instance, self)
   return instance
 end
+
+---@return string
+function BaseMedia:get_display_name()
+  return self.name
+end
+
+---@return string
+function BaseMedia:get_spotify_url()
+  return self.external_urls.spotify or ''
+end
+
+local M = {}
+M.BaseMedia = BaseMedia
+return M

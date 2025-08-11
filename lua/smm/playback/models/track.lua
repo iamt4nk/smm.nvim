@@ -20,6 +20,7 @@ function Track:new(track_data)
   local instance = BaseMedia.new(self, track_data)
 
   -- Add track-specific properties
+  ---@cast instance SMM_Track
   instance.artists = track_data.artists or {}
   instance.album = track_data.album
   instance.duration_ms = track_data.duration_ms or 0
@@ -34,6 +35,19 @@ function Track:new(track_data)
 
   setmetatable(instance, self)
   return instance
+end
+
+---@return string Formatted duration string (e.g., "3:45")
+function Track:get_formatted_duration()
+  local total_seconds = math.floor(self.duration_ms / 1000)
+  local minutes = math.floor(total_seconds / 60)
+  local seconds = total_seconds % 60
+  return string.format('%d:%02d', minutes, seconds)
+end
+
+---@return string
+function Track:get_primary_artist()
+  return (#self.artists > 0) and self.artists[1].name or 'Unknown Artist'
 end
 
 local M = {}
