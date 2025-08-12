@@ -172,11 +172,10 @@ function M.sync()
     return
   end
 
-  ---@param data SMM_SyncData
-  handle_timer_sync(function(data)
-    if data then
-      timer.current_pos = data.current_pos
-      timer.is_updating = data.is_playing
+  timer.sync(function(sync_data)
+    if sync_data then
+      timer.current_pos = sync_data.current_pos
+      timer.is_updating = sync_data.is_playing
       timer.update(timer.current_pos)
     else
       timer:pause()
