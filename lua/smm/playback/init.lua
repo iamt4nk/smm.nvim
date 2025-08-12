@@ -64,7 +64,7 @@ local function handle_timer_update(current_ms)
 end
 
 local function handle_timer_pause()
-  api.pause_track(function(pause_response, pause_headers, status_code)
+  api.pause(function(pause_response, pause_headers, status_code)
     if status_code == 200 or status_code == 204 then
       playback_timer.pause(timer)
     else
@@ -79,7 +79,7 @@ local function handle_timer_resume(position_ms)
     position_ms = 0
   end
 
-  api.resume_track(nil, nil, position_ms, function(resume_response, resume_headers, status_code)
+  api.play(nil, nil, position_ms, function(resume_response, resume_headers, status_code)
     if status_code == 200 or status_code == 204 then
       playback_timer.resume(timer)
     else
