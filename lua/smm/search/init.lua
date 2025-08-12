@@ -11,7 +11,7 @@ local M = {}
 ---Parse search resulsts and convert to model objects
 ---@param search_response table
 ---@param search_type string
----@param table[] Array of model objects
+---@return table[] Array of model objects
 local function parse_search_results(search_response, search_type)
   local results = {}
 
@@ -23,6 +23,9 @@ local function parse_search_results(search_response, search_type)
   local items = search_response[search_type .. 's'].items or {}
 
   for _, item in ipairs(items) do
+    if item == vim.NIL then
+      goto continue
+    end
     if search_type == 'track' then
       local artists = {}
       for _, artist_data in ipairs(item.artists or {}) do
@@ -49,9 +52,11 @@ local function parse_search_results(search_response, search_type)
       local playlist = Playlist:new(item)
       table.insert(results, playlist)
     end
+    ::continue::
   end
 
   logger.debug('Parsed %d results for search type: %s', #results, search_type)
+
   return results
 end
 
@@ -136,6 +141,7 @@ function M.search(search_type, query)
       return
     end
 
+    logger.debug('Response: %s', vim.inspect(response_body))
     local results = parse_search_results(response_body, search_type)
 
     if #results == 0 then

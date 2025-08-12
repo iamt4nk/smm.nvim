@@ -1,3 +1,5 @@
+local logger = require 'smm.utils.logger'
+
 ---@alias SMM_MediaType 'track'
 --- | 'album'
 --- | 'artist'
@@ -15,6 +17,7 @@ BaseMedia.__index = BaseMedia
 ---@param media_data table raw data from Spotify API
 ---@return SMM_BaseMedia
 function BaseMedia:new(media_data)
+  logger.debug('Media Data: %s', vim.inspect(media_data))
   local instance = {
     id = media_data.id,
     name = media_data.name,
