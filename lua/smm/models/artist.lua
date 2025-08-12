@@ -1,4 +1,4 @@
-local BaseMedia = require('smm.playback.models.base').BaseMedia
+local BaseMedia = require('smm.models.base').BaseMedia
 
 ---@class SMM_Artist : SMM_BaseMedia
 ---@field followers table Follower information with total count

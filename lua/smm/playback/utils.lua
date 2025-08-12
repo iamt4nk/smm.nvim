@@ -1,8 +1,8 @@
 local logger = require 'smm.utils.logger'
-local Track = require('smm.playback.models.track').Track
-local Album = require('smm.playback.models.album').Album
-local Artist = require('smm.playback.models.artist').Artist
-local Playlist = require('smm.playback.models.playlist').Playlist
+local Track = require('smm.models.track').Track
+local Album = require('smm.models.album').Album
+local Artist = require('smm.models.artist').Artist
+local Playlist = require('smm.models.playlist').Playlist
 
 local M = {}
 
