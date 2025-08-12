@@ -13,14 +13,14 @@ _**NOTE**_: This plugin does NOT stream any music itself, but rather it controls
 ![SMM Demo](./assets/smm_demo.gif)
 
 ### Installation:
-- Use the following to install this plugin:  
+
 LazyVim:  
 ```lua
 {
     'iamt4nk/smm.nvim',
     dependencies = {
-        'nvim-lua/plenary.nvim',
-         'nvim-telescope/telescope.nvim',
+      'nvim-lua/plenary.nvim',
+      'nvim-telescope/telescope.nvim',
     },
    config = {
       playback = {
