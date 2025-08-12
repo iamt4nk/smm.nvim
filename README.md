@@ -19,13 +19,8 @@ Use the following to install this plugin:
 {
     'iamt4nk/smm.nvim',
     dependencies = {
-<<<<<<< HEAD
       'nvim-lua/plenary.nvim',
       'nvim-telescope/telescope.nvim',
-=======
-        'nvim-lua/plenary.nvim',
-         'nvim-telescope/telescope.nvim',
->>>>>>> d2b416e (Updates readme and gif with updated features. fixes a bug with playback syncing)
     },
    config = {
       playback = {
