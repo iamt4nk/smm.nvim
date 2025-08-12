@@ -1,6 +1,7 @@
 local logger = require 'smm.utils.logger'
 local spotify = require 'smm.spotify'
 local requests = require 'smm.spotify.requests'
+local playback = require 'smm.playback'
 local Track = require('smm.playback.models.track').Track
 local Album = require('smm.playback.models.album').Album
 local Artist = require('smm.playback.models.artist').Artist
@@ -103,6 +104,7 @@ local function play_result(result, search_type)
   requests.play(result.uri, nil, 0, function(response_body, response_headers, status_code)
     if status_code == 200 or status_code == 204 then
       logger.debug('Successfully started playing %s: %s', search_type, result.name)
+      playback.sync()
     else
       logger.error('Failed to play %s. Status: %d, Response: %s', search_type, status_code, vim.inspect(response_body))
     end

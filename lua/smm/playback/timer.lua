@@ -14,13 +14,13 @@ local config = require 'smm.playback.config'
 ---@field consecutive_failures integer For tracking consecutive failures
 ---@field backoff_multiplier integer Multiplier for backoff in case too many 500s
 ---@field timer uv_timer_t The underlying timer object
-
-local M = {}
+local Timer = {}
+Timer.__index = Timer
 
 ---@param opts table
 ---@return SMM_PlaybackTimer
-function M.create_timer(opts)
-  return {
+function Timer:new(opts)
+  local instance = {
     current_pos = 0,
     update_interval = config.get().timer_update_interval,
     is_updating = false,
@@ -34,72 +34,73 @@ function M.create_timer(opts)
     consecutive_failures = 0,
     backoff_multiplier = 1,
   }
+
+  setmetatable(instance, self)
+  return instance
 end
 
----@param timer SMM_PlaybackTimer
-function M.start(timer)
-  timer.timer:start(
+function Timer:start()
+  self.timer:start(
     0,
-    timer.update_interval,
+    self.update_interval,
     vim.schedule_wrap(function()
       local override_sync = false
-      if timer.is_updating then
-        timer.current_pos = timer.current_pos + timer.update_interval
-        if timer.update then
-          override_sync = timer.update(timer.current_pos)
+      if self.is_updating then
+        self.current_pos = self.current_pos + self.update_interval
+        if self.update then
+          override_sync = self.update(self.current_pos)
         end
       end
 
-      if not timer.is_syncing then
+      if not self.is_syncing then
         local current_time = vim.loop.now()
-        if override_sync or (current_time - timer.last_sync_time >= timer.sync_interval) then
-          if timer.sync then
-            timer.is_syncing = true
-            timer.last_sync_time = current_time
-            timer.sync(function(sync_data)
+        if override_sync or (current_time - self.last_sync_time >= self.sync_interval) then
+          if self.sync then
+            self.is_syncing = true
+            self.last_sync_time = current_time
+            self.sync(function(sync_data)
               if sync_data then
-                timer.current_pos = sync_data.current_pos
-                timer.is_updating = sync_data.is_playing
-                timer.update(timer.current_pos)
+                self.current_pos = sync_data.current_pos
+                self.is_updating = sync_data.is_playing
+                self.update(self.current_pos)
               else
-                M.pause(timer)
-                timer.update(nil)
+                self:pause()
+                self.update(nil)
               end
             end)
           end
-          timer.is_syncing = false
+          self.is_syncing = false
         end
       end
     end)
   )
-  logger.debug('Started timer: %s', vim.inspect(timer.timer))
-  logger.debug(debug.traceback())
+  logger.debug('Started timer: %s', vim.inspect(self.timer))
 end
 
----@param timer SMM_PlaybackTimer
-function M.pause(timer)
-  timer.is_updating = false
+function Timer:pause()
+  self.is_updating = false
 end
 
----@param timer SMM_PlaybackTimer
-function M.resume(timer)
-  timer.is_updating = true
+function Timer:resume()
+  self.is_updating = true
 end
 
----@param timer SMM_PlaybackTimer
-function M.reset(timer)
-  timer.current_pos = 0
+function Timer:reset()
+  self.current_pos = 0
 end
 
----@param timer SMM_PlaybackTimer
-function M.close(timer)
+function Timer:close()
   logger.debug 'Pausing timer'
-  M.pause(timer)
+  self:pause()
   logger.debug 'Resetting timer'
-  M.reset(timer)
+  self:reset()
   logger.debug 'Closing underlying timer object'
-  timer.timer:close()
-  logger.debug('Closed timer: %s', vim.inspect(timer.timer))
+  self.timer:close()
+  logger.debug('Closed timer: %s', vim.inspect(self.timer))
 end
+
+local M = {}
+
+M.Timer = Timer
 
 return M
