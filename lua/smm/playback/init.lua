@@ -2,7 +2,7 @@ local config = require 'smm.playback.config'
 local spotify = require 'smm.spotify'
 
 local api = require 'smm.spotify.requests'
-local playback_timer = require 'smm.playback.timer'
+local Timer = require('smm.playback.timer').Timer
 local utils = require 'smm.playback.utils'
 local logger = require 'smm.utils.logger'
 local interface = require 'smm.playback.interface'
@@ -66,7 +66,8 @@ end
 local function handle_timer_pause()
   api.pause(function(pause_response, pause_headers, status_code)
     if status_code == 200 or status_code == 204 then
-      playback_timer.pause(timer)
+      timer:pause()
+      playback_info.playing = false
     else
       logger.error('Unable to pause current track:\nStatus Code: %s\nError: %s', status_code, vim.inspect(pause_response))
     end
@@ -81,7 +82,8 @@ local function handle_timer_resume(position_ms)
 
   api.play(nil, nil, position_ms, function(resume_response, resume_headers, status_code)
     if status_code == 200 or status_code == 204 then
-      playback_timer.resume(timer)
+      timer:resume()
+      playback_info.playing = true
     else
       logger.error('Unable to resume current track:\nStatus Code: %s\nError: %s', status_code, vim.inspect(resume_response))
     end
@@ -89,12 +91,12 @@ local function handle_timer_resume(position_ms)
 end
 
 local function start_timer()
-  timer = playback_timer.create_timer {
+  timer = Timer:new {
     update = handle_timer_update,
     sync = handle_timer_sync,
   }
 
-  playback_timer.start(timer)
+  timer:start()
 end
 
 ---Module setup function
@@ -118,7 +120,7 @@ function M.toggle_window()
     interface.remove_window()
     if timer then
       logger.debug 'Removing timer'
-      playback_timer.close(timer)
+      timer:close()
     end
 
     interface.is_showing = false
@@ -162,6 +164,25 @@ function M.resume()
   end
 
   handle_timer_resume(playback_info.progress_ms)
+end
+
+function M.sync()
+  if not playback_info then
+    logger.error 'Playback has not started. Unable to sync'
+    return
+  end
+
+  ---@param data SMM_SyncData
+  handle_timer_sync(function(data)
+    if data then
+      timer.current_pos = data.current_pos
+      timer.is_updating = data.is_playing
+      timer.update(timer.current_pos)
+    else
+      timer:pause()
+      timer.update(nil)
+    end
+  end)
 end
 
 return M
