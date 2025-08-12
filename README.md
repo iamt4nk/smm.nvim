@@ -12,14 +12,15 @@ _**NOTE**_: This plugin does NOT stream any music itself, but rather it controls
 
 ![SMM Demo](./assets/smm_demo.gif)
 
-Installation:
-- Use the following to install this plugin:  
+### Installation:
+
 LazyVim:  
 ```lua
 {
     'iamt4nk/smm.nvim',
     dependencies = {
-        'nvim-lua/plenary.nvim'
+      'nvim-lua/plenary.nvim',
+      'nvim-telescope/telescope.nvim',
     },
    config = {
       playback = {
@@ -43,9 +44,16 @@ LazyVim:
 },
 ```
 (Feel free to add a PR with instructions to install for your package manager.)
+
+#### Commands
+There are a few other commands you can currently run if you are a Spotify Premium User:
+- `:Spotify pause`: Pauses current song  
+- `:Spotify resume`: Resumes current song  
+- `:Spotify auth`: Re-authorizes with the Spotify app in case there are issues
+- `:Spotify play [artist|album|song|playlist] <query>`: Searches for the query and then starts playback from the selection.
   
 > [!WARNING]  
-> The configuration above are the defaults. Feel free to change any of these how you see fit. Do __*NOT*__ change any other configurations in the auth section you may find. They need to remain exactly how they see fit.
+> The configuration above are the defaults. Feel free to change any of these how you see fit. Do __*NOT*__ change any other configurations in the auth section you may find. They need to remain exactly how they are.
 
 _**NOTE**_: Use the "nightly" branch for regular, untested updates.
 
@@ -53,24 +61,20 @@ _**NOTE**_: Use the "nightly" branch for regular, untested updates.
 ### Execution
 To run this plugin for the first time run the command:
 ```
-:Spotify auth
+:Spotify
 ```
 
 This will initiate an OAuth procedure, which, once completed will store a refresh token in your `$HOME/.local/state/nvim/spotify` directory, as well as store an api access token in memory.
+
+Afterwards, it will also bring up the playback window with which you can view playback.
 
 Afterwards you can run:
 ```
 :Spotify
 ```
 
-This will create a playback window, and start sending API requests to Spotify servers to start showing the track you are currently playing.  
+Which will close the playback window.
+
 
 **NOTE**: Spotify Apps that use the [Spotify Web API](https://developer.spotify.com/documentation/web-api) do not allow you to specify a webhook. This pretty much means that the only thing we can do on the plugin is send requests every so often to sync with the servers.
 
-To stop the playback, simply run the same command.
-
-### Other Commands
-There are a few other commands you can currently run if you are a Spotify Premium User:
-- `:Spotify pause`: Pauses current song  
-- `:Spotify resume`: Resumes current song  
-- `:Spotify auth`: Re-authorizes with the Spotify app in case there are issues

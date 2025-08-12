@@ -1,5 +1,7 @@
 local api = require 'smm.utils.api_async'
 local logger = require 'smm.utils.logger'
+local utils = require 'smm.spotify.utils'
+local config = require 'smm.spotify.config'
 
 local M = {}
 
@@ -54,9 +56,7 @@ end
 ---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
 ---@param retry_override? boolean
 function M.get_user_profile(callback, retry_override)
-  if retry_override == nil then
-    retry_override = false
-  end
+  retry_override = retry_override == true
 
   local auth_info = require('smm.spotify').auth_info
 
@@ -89,9 +89,7 @@ end
 ---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
 ---@param retry_override? boolean
 function M.get_playback_state(callback, retry_override)
-  if retry_override == nil then
-    retry_override = false
-  end
+  retry_override = retry_override == true
 
   local auth_info = require('smm.spotify').auth_info
 
@@ -124,10 +122,8 @@ end
 
 ---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
 ---@param retry_override? boolean
-function M.pause_track(callback, retry_override)
-  if retry_override == nil then
-    retry_override = false
-  end
+function M.pause(callback, retry_override)
+  retry_override = retry_override == true
 
   local auth_info = require('smm.spotify').auth_info
 
@@ -163,10 +159,8 @@ end
 ---@param position_ms integer
 ---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
 ---@param retry_override? boolean
-function M.resume_track(context_uri, offset, position_ms, callback, retry_override)
-  if retry_override == nil then
-    retry_override = false
-  end
+function M.play(context_uri, offset, position_ms, callback, retry_override)
+  retry_override = retry_override == true
 
   local auth_info = require('smm.spotify').auth_info
 
@@ -174,7 +168,9 @@ function M.resume_track(context_uri, offset, position_ms, callback, retry_overri
     position_ms = position_ms,
   }
 
-  if context_uri then
+  if context_uri and context_uri:match '^spotify:track' then
+    body['uris'] = { context_uri }
+  else
     body['context_uri'] = context_uri
   end
 
@@ -211,8 +207,53 @@ function M.resume_track(context_uri, offset, position_ms, callback, retry_overri
       end
     end)
   else
-    logger.error 'Unable to run API Request: Resume Track. - Permissions not available'
+    logger.error 'Unable to run API Request: Play. - Permissions not available'
   end
+end
+
+---@param query string
+---@param type string The type to search for { 'track', 'album', 'artist', 'playlist' }
+---@param limit? integer Number of results to return (default: 20, max: 30)
+---@param offset? integer The index of the first result to return (default: 0)
+---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
+---@param retry_override? boolean (Default: false)
+function M.search(query, type, limit, offset, callback, retry_override)
+  retry_override = retry_override == nil
+
+  limit = limit or 20
+  offset = offset or 0
+
+  local auth_info = require('smm.spotify').auth_info
+
+  -- No special scopes required
+  check_session(auth_info)
+
+  local query_params = {
+    q = query,
+    type = type,
+    limit = limit,
+    offset = offset,
+  }
+
+  local api_func = function(api_callback)
+    api.get(base_url .. '/search', nil, query_params, auth_info.access_token, api_callback)
+  end
+
+  api_func(function(response_body, response_headers, status_code)
+    local should_retry = false
+    if status_code >= 500 and status_code < 600 then
+      logger.warn 'API returned Server error. Retrying'
+      should_retry = true
+    elseif status_code == 429 then
+      should_retry = true
+    end
+
+    if should_retry and not retry_override then
+      retry(api_func, callback)
+    else
+      callback(response_body, response_headers, status_code)
+    end
+  end)
 end
 
 return M

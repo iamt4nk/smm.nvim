@@ -3,7 +3,7 @@ local BaseMedia = require('smm.playback.models.base').BaseMedia
 ---@class SMM_Playlist : SMM_BaseMedia
 ---@field collaborative boolean
 ---@field description string|nil
----@field followers table 
+---@field followers table
 ---@field images table[]
 ---@field owner table
 ---@field public boolean
@@ -24,7 +24,7 @@ function Playlist:new(playlist_data)
   instance.images = playlist_data.images or {}
   instance.owner = playlist_data.owner or {}
   instance.public = playlist_data.public
-  instance.snapshot_id = playlist_data.snapshot_id or ""
+  instance.snapshot_id = playlist_data.snapshot_id or ''
   instance.tracks = playlist_data.tracks or { total = 0, items = {} }
 
   setmetatable(instance, self)
@@ -33,7 +33,7 @@ end
 
 ---@return string
 function Playlist:get_owner_name()
-  return self.owner.display_name or self.owner.id or "Unknown"
+  return self.owner.display_name or self.owner.id or 'Unknown'
 end
 
 ---@return integer
@@ -56,7 +56,7 @@ function Playlist:get_cover_image_url()
   local largest = self.images[1]
   for _, image in ipairs(self.images) do
     if image.width and largest.width and image.width > largest.width then
-      largest = image  
+      largest = image
     end
   end
 
@@ -65,8 +65,8 @@ end
 
 ---@return string
 function Playlist:get_formatted_info()
-  local track_text = self:get_track_count == 1 and "track" or "tracks"
-  return string.format("by %s | %d %s", self:get_owner_name(), self:get_track_count(), track_text)
+  local track_text = self:get_track_count() == 1 and 'track' or 'tracks'
+  return string.format('by %s | %d %s', self:get_owner_name(), self:get_track_count(), track_text)
 end
 
 ---@return string
