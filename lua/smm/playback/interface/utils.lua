@@ -61,11 +61,21 @@ function M.format_playback_lines(playback_info)
   else
     local track = playback_info.track
     local progress_bar_width = config.get().progress_bar_width
+    local playback_width = config.get().playback_width
 
     logger.debug('Album: %s', vim.inspect(track.album))
     local artist_text = create_hyperlink(track:get_primary_artist(), track.artists[1]:get_spotify_url())
+    if #artist_text > playback_width - 12 then
+      artist_text = artist_text:sub(1, playback_width - 15):match '^%s*(.-)%s*$' .. '...'
+    end
     local track_text = create_hyperlink(track.name, track:get_spotify_url())
+    if #track_text > playback_width - 11 then
+      track_text = track_text:sub(1, playback_width - 14):match '^%s*(.-)%s*$' .. '...'
+    end
     local album_text = create_hyperlink(track.album.name, track.album:get_spotify_url())
+    if #album_text > playback_width - 11 then
+      album_text = album_text:sub(1, playback_width - 14):match '^%s*(.-)%s*$' .. '...'
+    end
 
     table.insert(playback_lines, 'Artist: ' .. artist_text)
     table.insert(playback_lines, 'Album: ' .. album_text)

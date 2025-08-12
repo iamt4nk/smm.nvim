@@ -50,7 +50,7 @@ There are a few other commands you can currently run if you are a Spotify Premiu
 - `:Spotify pause`: Pauses current song  
 - `:Spotify resume`: Resumes current song  
 - `:Spotify auth`: Re-authorizes with the Spotify app in case there are issues
-- `:Spotify search [artist|album|song|playlist] <query>`: Searches for the query and then starts playback from the selection.
+- `:Spotify play [artist|album|song|playlist] <query>`: Searches for the query and then starts playback from the selection.
   
 > [!WARNING]  
 > The configuration above are the defaults. Feel free to change any of these how you see fit. Do __*NOT*__ change any other configurations in the auth section you may find. They need to remain exactly how they are.

@@ -19,7 +19,7 @@ function M.setup()
       local token = require 'smm.spotify.token'
       token.delete_refresh_token()
       token.save_refresh_token(auth_info.refresh_token)
-    elseif args[1] == 'search' then
+    elseif args[1] == 'play' then
       local search_type = args[2]
       local query = table.concat(vim.list_slice(args, 3), ' ')
 
@@ -51,7 +51,7 @@ function M.setup()
       local args = vim.split(CmdLine, '%s+')
 
       if #args == 2 then
-        return { 'auth', 'pause', 'resume', 'search' }
+        return { 'auth', 'pause', 'resume', 'play' }
       elseif #args == 3 and args[2] == 'search' then
         return { 'song', 'album', 'artist', 'playlist' }
       end
