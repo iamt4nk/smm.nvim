@@ -45,7 +45,7 @@ function M.get_playbackinfo(playback_response)
   track.artists = artists
   track.album = album
 
-  local context_uri = playback_response.context and playback_response.context.uri or ''
+  local context_uri = playback_response.context ~= vim.NIL and playback_response.context.uri or ''
   local context_type = nil
   local playlist = nil
 
