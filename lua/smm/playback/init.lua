@@ -1,105 +1,13 @@
 local config = require 'smm.playback.config'
 local spotify = require 'smm.spotify'
-
-local api = require 'smm.spotify.requests'
-local Timer = require('smm.playback.timer').Timer
-local utils = require 'smm.playback.utils'
-local logger = require 'smm.utils.logger'
+local manager = require 'smm.playback.manager'
 local interface = require 'smm.playback.interface'
-
----@alias SMM_SyncData { is_playing: boolean, current_pos: integer }
-
----@type SMM_PlaybackInfo|nil
-local playback_info = nil
-
----@type SMM_PlaybackTimer|nil
-local timer = nil
+local logger = require 'smm.utils.logger'
 
 local M = {}
 
---- Local functions for handling playback actions
-
-----@param callback fun(sync_data: SMM_SyncData|nil) callback to the timer with the appropriate data
-local function handle_timer_sync(callback)
-  api.get_playback_state(function(playback_response, playback_headers, status_code)
-    if status_code == 200 or status_code == 204 then
-      logger.debug('Playback Response:\n%s', vim.inspect(playback_response))
-      logger.debug('Playback Response headers:\n%s', vim.inspect(playback_headers))
-
-      playback_info = utils.get_playbackinfo(playback_response)
-
-      if (playback_info and playback_info.progress_ms and playback_info.playing ~= nil) and playback_info ~= '' then
-        logger.debug('Calling back: %s %s', playback_info.progress_ms, playback_info.playing)
-        callback {
-          current_pos = playback_info.progress_ms,
-          is_playing = playback_info.playing,
-        }
-      else
-        logger.debug 'Callback: nil'
-        callback(nil)
-      end
-    elseif status_code >= 500 or status_code <= 510 then
-      logger.warn 'Received status code: %d - Will try again next sync'
-      callback(nil)
-    else
-      logger.error('Getting playback state failed:\nStatus Code: %s\nError: %s', status_code, vim.inspect(playback_response))
-    end
-  end, true)
-end
-
----@param current_ms integer|nil Current position in milliseconds
----@return boolean -- Returns whether or not to force a re-sync
-local function handle_timer_update(current_ms)
-  if not playback_info or not current_ms then
-    interface.update_window(nil)
-    return false
-  end
-
-  if playback_info.progress_ms >= playback_info.track.duration_ms - 200 then
-    return true
-  end
-  playback_info.progress_ms = current_ms
-  interface.update_window(playback_info)
-  return false
-end
-
-local function handle_timer_pause()
-  api.pause(function(pause_response, pause_headers, status_code)
-    if status_code == 200 or status_code == 204 then
-      timer:pause()
-      playback_info.playing = false
-    else
-      logger.error('Unable to pause current track:\nStatus Code: %s\nError: %s', status_code, vim.inspect(pause_response))
-    end
-  end)
-end
-
----@param position_ms integer|nil
-local function handle_timer_resume(position_ms)
-  if not position_ms then
-    position_ms = 0
-  end
-
-  api.play(nil, nil, position_ms, function(resume_response, resume_headers, status_code)
-    if status_code == 200 or status_code == 204 then
-      timer:resume()
-      playback_info.playing = true
-    else
-      logger.error('Unable to resume current track:\nStatus Code: %s\nError: %s', status_code, vim.inspect(resume_response))
-    end
-  end)
-end
-
-local function start_timer()
-  timer = Timer:new {
-    update = handle_timer_update,
-    sync = handle_timer_sync,
-  }
-
-  timer:start()
-end
-
 ---Module setup function
+---@param user_config table|nil
 function M.setup(user_config)
   config.setup(user_config or {})
 
@@ -112,76 +20,94 @@ function M.setup(user_config)
   interface.setup(config.get().interface)
 end
 
----Functions to interface with
-
+---Toggle the playback window on/off
 function M.toggle_window()
   if interface.is_showing then
-    logger.debug 'Removing window'
+    logger.debug 'Hiding playback window'
     interface.remove_window()
-    if timer then
-      logger.debug 'Removing timer'
-      timer:close()
+
+    if manager.is_session_active() then
+      logger.debug 'Stopping session playback'
+      manager.stop_session()
     end
-
-    interface.is_showing = false
     return
   end
 
+  -- Authenticate with Spotify before starting
   spotify.authenticate()
-  logger.debug 'Showing window'
+
+  logger.debug 'Showing playback window'
   interface.create_window()
-  start_timer()
-  interface.is_showing = true
+
+  logger.debug 'Starting playback session'
+  manager.start_session()
 end
 
+---Pause current playback
 function M.pause()
-  if not playback_info then
-    logger.error 'Playback has not started. Unable to pause'
+  if not manager.is_session_active() then
+    logger.error 'Playback session is not active. Unable to pause'
     return
   end
 
-  if playback_info and not playback_info.playing then
-    logger.info 'Track already paused'
-    return
-  end
-
-  handle_timer_pause()
+  manager.pause()
 end
 
+---Resume current playback at last position
 function M.resume()
-  if not playback_info then
-    logger.error 'Playback has not started. Unable to resume.'
+  if not manager.is_session_active() then
+    logger.error 'Playback session is not active. Unable to resume'
     return
   end
 
+  local playback_info = manager.get_playback_info()
   if playback_info and playback_info.playing then
     logger.info 'Track is already playing'
     return
   end
 
-  if not playback_info.progress_ms then
-    playback_info.progress_ms = 0
-  end
-
-  handle_timer_resume(playback_info.progress_ms)
+  --- Resume at current position (manager handles logic)
+  manager.play()
 end
 
-function M.sync()
-  if not playback_info then
-    logger.error 'Playback has not started. Unable to sync'
+---Play specific context
+---@param context_uri string Spotify URI (track, album, playlist, artist)
+---@param offset integer|nil Track offset for albums/playlists (default: 0)
+---@param position_ms integer|nil Position to start playing from (default: 0)
+function M.play(context_uri, offset, position_ms)
+  if not manager.is_session_active() then
+    logger.error 'Playback session not active. Unable to play'
     return
   end
 
-  timer.sync(function(sync_data)
-    if sync_data then
-      timer.current_pos = sync_data.current_pos
-      timer.is_updating = sync_data.is_playing
-      timer.update(timer.current_pos)
-    else
-      timer:pause()
-      timer.update(nil)
-    end
-  end)
+  if context_uri:match '^spotify:artist' then
+    offset = nil
+  end
+
+  manager.play(context_uri, offset, position_ms or 0)
+  vim.defer_fn(M.sync, 500)
+end
+
+---Force sync with Spotify servers
+function M.sync()
+  if not manager.is_session_active() then
+    logger.error 'Playback session not active. Unable to sync'
+    return
+  end
+
+  manager.sync()
+end
+
+---Get current playback information (read-only)
+---@return SMM_PlaybackInfo|nil
+function M.get_playback_info()
+  return manager.get_playback_info()
+end
+
+---Check if playback session is active
+---@return boolean
+function M.is_active()
+  return manager.is_session_active()
 end
 
 return M

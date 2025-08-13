@@ -1,4 +1,4 @@
-local BaseMedia = require('smm.playback.models.base').BaseMedia
+local BaseMedia = require('smm.models.base').BaseMedia
 
 ---@class SMM_Track : SMM_BaseMedia
 ---@field artists SMM_Artist[] Array of artists
