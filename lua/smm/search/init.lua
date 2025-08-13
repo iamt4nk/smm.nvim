@@ -101,15 +101,7 @@ end
 ---@param search_type string
 local function play_result(result, search_type)
   logger.info('Playing %s: %s', search_type:gsub('^%l', string.upper), result.name)
-  requests.play(result.uri, nil, 0, function(response_body, response_headers, status_code)
-    if status_code == 200 or status_code == 204 then
-      logger.debug('Successfully started playing %s: %s', search_type, result.name)
-      -- We need to delay this because sometimes the state in spotify servers hasn't updated by the time we call this.
-      vim.defer_fn(playback.sync, 500)
-    else
-      logger.error('Failed to play %s. Status: %d, Response: %s', search_type, status_code, vim.inspect(response_body))
-    end
-  end)
+  playback.play(result.uri)
 end
 
 --Setup function
