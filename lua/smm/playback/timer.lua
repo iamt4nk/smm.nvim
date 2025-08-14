@@ -44,17 +44,23 @@ function Timer:start()
     0,
     self.update_interval,
     vim.schedule_wrap(function()
+      logger.debug('[TIMER] Tick - updating: %s, syncing: %s, current_pos: %d', tostring(self.is_updating), tostring(self.is_syncing), self.current_pos)
+
       local override_sync = false
       if self.is_updating then
         self.current_pos = self.current_pos + self.update_interval
         if self.update then
           override_sync = self.update(self.current_pos)
+          logger.debug('[TIMER] Update called back return override_sync: %s', tostring(override_sync))
         end
       end
 
       if not self.is_syncing then
         local current_time = vim.loop.now()
+        local time_since_sync = current_time - self.last_sync_time
+        logger.debug('[TIMER] Time since last sync: %d ms (threshold: %d ms)', time_since_sync, self.sync_interval)
         if override_sync or (current_time - self.last_sync_time >= self.sync_interval) then
+          logger.debug('[TIMER] Starting sync - override: %s', tostring(override_sync))
           if self.sync then
             self.is_syncing = true
             self.last_sync_time = current_time
@@ -70,6 +76,7 @@ function Timer:start()
             end)
           end
           self.is_syncing = false
+          logger.debug '[TIMER] Sync completed, is_syncing set to false'
         end
       end
     end)

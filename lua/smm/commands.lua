@@ -24,12 +24,12 @@ function M.setup()
       local query = table.concat(vim.list_slice(args, 3), ' ')
 
       if not search_type then
-        logger.error 'Search type is required. Usage :Spotify search [song|album|artist|playlist] <query>'
+        logger.error 'Search type is required. Usage :Spotify play [song|album|artist|playlist] <query>'
         return
       end
 
       if not query or query == '' then
-        logger.error 'Search query is required. Usage :Spotify search [song|album|artist|playlist] <query>'
+        logger.error 'Search query is required. Usage :Spotify play [song|album|artist|playlist] <query>'
         return
       end
 
@@ -43,6 +43,10 @@ function M.setup()
       end
 
       require('smm.search').search(spotify_type, query)
+    elseif args[1] == 'next' then
+      require('smm.playback').next()
+    elseif args[1] == 'prev' then
+      require('smm.playback').previous()
     end
   end, {
     desc = 'Spotify related commands',
