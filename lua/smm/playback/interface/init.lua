@@ -98,7 +98,6 @@ function M.update_window(playback_info)
 
     set_window_pos(width, height)
 
-    logger.debug('Window Options: %s', win_opts)
     vim.api.nvim_win_set_config(win, win_opts)
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   end)

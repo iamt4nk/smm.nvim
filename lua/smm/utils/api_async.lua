@@ -17,7 +17,7 @@ end
 ---@param response table
 ---@return table|string, table, integer
 local function process_response(response)
-  logger.debug(vim.inspect(response))
+  -- logger.debug(vim.inspect(response))
 
   -- Extract parts of response
   local response_body = response.body
@@ -62,7 +62,7 @@ function M.get(url, headers, query, access_token, callback)
   local query_string = query and encoding.encode_table_as_query(query)
   headers = prepare_headers(headers, access_token)
 
-  logger.debug('Sending GET request: %s\nQuery: %s\nHeaders: %s', url, vim.inspect(query), vim.inspect(headers))
+  -- logger.debug('Sending GET request: %s\nQuery: %s\nHeaders: %s', url, vim.inspect(query), vim.inspect(headers))
 
   curl.get(query_string and (url .. '?' .. query_string) or url, {
     headers = headers,
@@ -101,7 +101,7 @@ function M.post(url, headers, query, body, access_token, callback)
     end
   end
 
-  logger.debug('Sending POST request: %s\nQuery: %s\nHeaders: %s\nBody: %s', url, vim.inspect(query), vim.inspect(headers), vim.inspect(body))
+  -- logger.debug('Sending POST request: %s\nQuery: %s\nHeaders: %s\nBody: %s', url, vim.inspect(query), vim.inspect(headers), vim.inspect(body))
 
   curl.post(query_string and (url .. '?' .. query_string) or url, {
     headers = headers or {},
@@ -139,7 +139,7 @@ function M.put(url, headers, query, body, access_token, callback)
     end
   end
 
-  logger.debug('Sending PUT request: %s\nQuery: %s\nHeaders: %s\n Body: %s', url, vim.inspect(query), vim.inspect(headers), body_data)
+  -- logger.debug('Sending PUT request: %s\nQuery: %s\nHeaders: %s\n Body: %s', url, vim.inspect(query), vim.inspect(headers), body_data)
 
   curl.put(query_string and (url .. '?' .. query_string) or url, {
     headers = headers or {},

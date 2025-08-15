@@ -54,8 +54,6 @@ end
 function M.format_playback_lines(playback_info)
   local playback_lines = {}
 
-  logger.debug('Playback Info: %s', vim.inspect(playback_info))
-
   if not playback_info or not playback_info.track then
     table.insert(playback_lines, 'No track currently playing')
   else
@@ -63,7 +61,6 @@ function M.format_playback_lines(playback_info)
     local progress_bar_width = config.get().progress_bar_width
     local playback_width = config.get().playback_width
 
-    logger.debug('Album: %s', vim.inspect(track.album))
     local artist_text = create_hyperlink(track:get_primary_artist(), track.artists[1]:get_spotify_url())
     if #artist_text > playback_width - 12 then
       artist_text = artist_text:sub(1, playback_width - 15):match '^%s*(.-)%s*$' .. '...'
