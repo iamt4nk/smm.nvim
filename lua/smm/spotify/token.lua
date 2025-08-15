@@ -6,7 +6,6 @@ local M = {}
 ---@param refresh_token string
 ---@return boolean
 function M.save_refresh_token(refresh_token)
-  logger.info 'SMM: Saving refresh token to disk'
   local spotify_dir = utils.get_spotify_state_path()
   vim.fn.mkdir(spotify_dir, 'p')
 
