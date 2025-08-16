@@ -73,30 +73,33 @@ function M.search(callback)
     local action_state = require 'telescope.actions.state'
 
     vim.schedule(function()
-      pickers.new({}, {
-        prompt_title = string.format 'Available Spotify Devices',
-        finder = finders.new_table {
-          results = results,
-          entry_maker = function(result)
-            local display_text, ordinal_text = format_result(result)
-            return {
-              value = result,
-              display = display_text,
-              ordinal = ordinal_text,
-            }
+      pickers
+        .new({}, {
+          prompt_title = string.format 'Available Spotify Devices',
+          finder = finders.new_table {
+            results = results,
+            entry_maker = function(result)
+              local display_text, ordinal_text = format_result(result)
+              return {
+                value = result,
+                display = display_text,
+                ordinal = ordinal_text,
+              }
+            end,
+          },
+          sorter = conf.generic_sorter {},
+          attach_mappings = function(prompt_bufnr, map)
+            actions.select_default:replace(function()
+              actions.close(prompt_bufnr)
+              local selection = action_state.get_selected_entry()
+              if selection and callback then
+                callback(selection.value)
+              end
+            end)
+            return true
           end,
-        },
-        sorter = conf.generic_sorter {},
-        attach_mappings = function(prompt_bufnr, map)
-          actions.select_default:replace(function()
-            actions.close(prompt_bufnr)
-            local selection = action_state.get_selected_entry()
-            if selection and callback then
-              callback(selection.value)
-            end
-          end)
-        end,
-      })
+        })
+        :find()
     end)
   end)
 end
