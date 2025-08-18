@@ -31,6 +31,9 @@ local next_handler = nil
 ---@type function|nil
 local previous_handler = nil
 
+---@type function|nil
+local transfer_playback_handler = nil
+
 ---Updates playback_info with partial data
 ---@param updates table Partial updates to apply to playback_info
 local function update_playback_info(updates)
@@ -77,6 +80,7 @@ local function initialize_handlers()
   play_handler = handlers.create_play_handler(get_timer, update_playback_info)
   next_handler = handlers.create_next_handler()
   previous_handler = handlers.create_previous_handler()
+  transfer_playback_handler = handlers.create_transfer_playback_handler(update_playback_info)
 end
 
 ---Starts the timer and playback session
@@ -168,6 +172,13 @@ function M.previous()
   if previous_handler then
     previous_handler()
     vim.defer_fn(M.sync, 500)
+  end
+end
+
+---Searches for a device and then transfers playback to that device
+function M.transfer_playback()
+  if transfer_playback_handler then
+    transfer_playback_handler()
   end
 end
 

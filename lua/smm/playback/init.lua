@@ -117,6 +117,11 @@ function M.previous()
   manager.previous()
 end
 
+---Transfer playback to another device
+function M.transfer_playback()
+  manager.transfer_playback()
+end
+
 ---Get current playback information (read-only)
 ---@return SMM_PlaybackInfo|nil
 function M.get_playback_info()
