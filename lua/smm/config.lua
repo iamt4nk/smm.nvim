@@ -4,6 +4,7 @@ local logger = require 'smm.utils.logger'
 local M = {}
 
 local default_config = {
+  premium = true,
   debug = false,
   -- file = '/home/klanum/smm_log.txt',
 
@@ -23,7 +24,6 @@ local default_config = {
     api_retry_max = 3,
     api_retry_backoff = 2000,
     auth = {
-      premium = true,
       enabled = true,
       client_id = 'c43057d088204249bca8d5bde4e93bd3',
       callback_url = 'http://127.0.0.1',
@@ -40,7 +40,7 @@ function M.setup(user_config)
     user_config.debug = false
   end
 
-  logger.setup((user_config and user_config.debug and user_config) or default_config)
+  logger.setup((user_config and user_config.debug) or default_config.debug)
 
   logger.debug('Default config: %s\n', vim.inspect(default_config))
   config = vim.tbl_deep_extend('force', default_config, user_config or {})

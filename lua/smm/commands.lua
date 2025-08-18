@@ -56,6 +56,8 @@ function M.setup()
       require('smm.playback').previous()
     elseif args[1] == 'change_device' then
       require('smm.playback').transfer_playback()
+    else
+      logger.error 'Could not execute command. Usage: :Spotify [auth|pause|resume|play|change_device] [opts]'
     end
   end, {
     desc = 'Spotify related commands',
@@ -64,7 +66,7 @@ function M.setup()
       local args = vim.split(CmdLine, '%s+')
 
       if #args == 2 then
-        return { 'auth', 'pause', 'resume', 'play' }
+        return { 'auth', 'pause', 'resume', 'play', 'change_device' }
       elseif #args == 3 and args[2] == 'search' then
         return { 'song', 'album', 'artist', 'playlist' }
       end

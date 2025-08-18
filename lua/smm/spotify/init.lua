@@ -22,6 +22,7 @@ function M.authenticate()
   token.save_refresh_token(M.auth_info.refresh_token)
 end
 
+---@param user_config SMM_SpotifyConfig
 function M.setup(user_config)
   config.setup(user_config)
 

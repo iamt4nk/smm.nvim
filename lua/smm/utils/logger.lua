@@ -52,15 +52,11 @@ local function log(level, message, ...)
 end
 
 -- Public logging functions
----@param log_opts table
-function M.setup(log_opts)
-  if log_opts and log_opts.debug == true then
-    debug_level = true
-  end
-
-  if log_opts and log_opts.file ~= '' then
-    log_file = log_opts.file
-  end
+---@param debug boolean
+---@param file? string
+function M.setup(debug, file)
+  debug_level = (debug ~= false)
+  log_file = file or ''
 end
 
 ---@param message string

@@ -8,6 +8,7 @@ local commands = require 'smm.commands'
 local M = {}
 
 function M.setup(user_config)
+  -- Sets up main configuration + logger
   config.setup(user_config or {})
 
   commands.setup()

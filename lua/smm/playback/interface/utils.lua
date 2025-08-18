@@ -1,4 +1,3 @@
-local logger = require 'smm.utils.logger'
 local config = require 'smm.playback.interface.config'
 
 ---@param ms integer
@@ -54,7 +53,12 @@ end
 function M.format_playback_lines(playback_info)
   local playback_lines = {}
 
-  if not playback_info or not playback_info.track then
+  if not playback_info then
+    table.insert(playback_lines, 'No track currently playing')
+  elseif playback_info.is_advertisement then
+    table.insert(playback_lines, 'Advertisement currently playing')
+    table.insert(playback_lines, 'Progress: ' .. convert_ms_to_timestamp(playback_info.progress_ms))
+  elseif not playback_info.track then
     table.insert(playback_lines, 'No track currently playing')
   else
     local track = playback_info.track
