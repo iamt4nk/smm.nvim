@@ -1,6 +1,6 @@
 local logger = require 'smm.utils.logger'
 
----@alias SMM_Config { debug: boolean, playback: SMM_PlaybackConfig, spotify: SMM_SpotifyConfig }
+---@alias SMM_Config { debug: boolean, file?: string, premium: boolean, playback: SMM_PlaybackConfig, spotify: SMM_SpotifyConfig }
 local M = {}
 
 local default_config = {
@@ -47,6 +47,7 @@ function M.setup(user_config)
   logger.debug('Merged config: %s\n', vim.inspect(config))
 end
 
+---@return SMM_Config
 function M.get()
   return config
 end
