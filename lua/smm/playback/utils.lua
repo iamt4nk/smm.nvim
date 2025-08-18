@@ -6,8 +6,6 @@ local Playlist = require('smm.models.playlist').Playlist
 
 local M = {}
 
----@alias SMM_PlaybackInfo { id: string, device_id: string?, context_uri: string, context_type: string?, playlist: SMM_Playlist|nil, track: SMM_Track,  playing: boolean,  progress_ms: integer }
-
 ---@param playback_response table|string
 ---@return SMM_PlaybackInfo|nil
 function M.get_playbackinfo(playback_response)

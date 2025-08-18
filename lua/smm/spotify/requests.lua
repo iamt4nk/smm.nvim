@@ -26,7 +26,7 @@ end
 ---@param auth_info SMM_AuthInfo
 local function check_session(auth_info)
   local current_time = os.time()
-  logger.debug('Current Time: %d\nSession Expires atw %d\nSession remaining time: %d', current_time, auth_info.expires_at, auth_info.expires_at - current_time)
+  logger.debug('Current Time: %d\nSession Expires at %d\nSession remaining time: %d', current_time, auth_info.expires_at, auth_info.expires_at - current_time)
   if auth_info.expires_at < current_time + 30 then
     require('smm.spotify').authenticate()
   end
@@ -167,10 +167,11 @@ function M.play(context_uri, offset, position_ms, callback, retry_override)
     }
   end
 
-  logger.debug('Request body: %s', vim.json.encode(body))
+  -- logger.debug('Request body: %s', vim.json.encode(body))
 
   if not check_scope(auth_info.scope, 'user-modify-playback-state') then
     logger.error 'Unable to run API Request: Play. - Permissions not available'
+    return
   end
 
   local api_func = function(api_callback)
@@ -204,6 +205,87 @@ function M.search(query, type, limit, offset, callback, retry_override)
 
   local api_func = function(api_callback)
     api.get(base_url .. '/search', nil, query_params, auth_info.access_token, api_callback)
+  end
+
+  make_api_call(api_func, callback, retry_override)
+end
+
+---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
+---@param retry_override? boolean (Default: false)
+function M.next(callback, retry_override)
+  local auth_info = require('smm.spotify').auth_info
+  check_session(auth_info)
+
+  if not check_scope(auth_info.scope, 'user-modify-playback-state') then
+    logger.error 'Unable to run API request: Skip to next. - Permissions not available'
+    return
+  end
+
+  local api_func = function(api_callback)
+    api.post(base_url .. '/me/player/next', nil, nil, nil, auth_info.access_token, api_callback)
+  end
+
+  make_api_call(api_func, callback, retry_override)
+end
+
+---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
+---@param retry_override? boolean (Default: false)
+function M.previous(callback, retry_override)
+  local auth_info = require('smm.spotify').auth_info
+  check_session(auth_info)
+
+  if not check_scope(auth_info.scope, 'user-modify-playback-state') then
+    logger.error 'Unable to run API request: Skip to next. - Permissions not available'
+    return
+  end
+
+  local api_func = function(api_callback)
+    api.post(base_url .. '/me/player/previous', nil, nil, nil, auth_info.access_token, api_callback)
+  end
+
+  make_api_call(api_func, callback, retry_override)
+end
+
+---Get all available devices that we can play on.
+---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
+---@param retry_override? boolean (Default: false)
+function M.get_available_devices(callback, retry_override)
+  local auth_info = require('smm.spotify').auth_info
+  check_session(auth_info)
+
+  if not check_scope(auth_info.scope, 'user-read-playback-state') then
+    logger.error 'Unable to run API request: Get Available devices. - Permissions not available'
+    return
+  end
+
+  local api_func = function(api_callback)
+    api.get(base_url .. '/me/player/devices', nil, nil, auth_info.access_token, api_callback)
+  end
+
+  make_api_call(api_func, callback, retry_override)
+end
+
+---Transfer playback to separate device
+---@param device_id string The device ID of the new device to transfer playback
+---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
+---@param retry_override? boolean (Default: false)
+function M.transfer_playback_state(device_id, callback, retry_override)
+  local auth_info = require('smm.spotify').auth_info
+  check_session(auth_info)
+
+  if not check_scope(auth_info.scope, 'user-modify-playback-state') then
+    logger.error 'Unable to run API request: Transfer Playback. - Permissions not available'
+    return
+  end
+
+  local body = {
+    ['device_ids'] = { device_id }, ---@type string[]
+  }
+
+  local api_func = function(api_callback)
+    api.put(base_url .. '/me/player', {
+      ['Content-Type'] = 'application/json',
+    }, nil, body, auth_info.access_token, api_callback)
   end
 
   make_api_call(api_func, callback, retry_override)

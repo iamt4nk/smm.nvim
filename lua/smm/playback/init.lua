@@ -85,7 +85,6 @@ function M.play(context_uri, offset, position_ms)
   end
 
   manager.play(context_uri, offset, position_ms or 0)
-  vim.defer_fn(M.sync, 500)
 end
 
 ---Force sync with Spotify servers
@@ -96,6 +95,31 @@ function M.sync()
   end
 
   manager.sync()
+end
+
+---Skip to the next song
+function M.next()
+  if not manager.is_session_active() then
+    logger.error 'Playback session not active. Unable to skip'
+    return
+  end
+
+  manager.next()
+end
+
+---Skip to the previous song
+function M.previous()
+  if not manager.is_session_active() then
+    logger.error 'Playback session not active. Unable to skip'
+    return
+  end
+
+  manager.previous()
+end
+
+---Transfer playback to another device
+function M.transfer_playback()
+  manager.transfer_playback()
 end
 
 ---Get current playback information (read-only)

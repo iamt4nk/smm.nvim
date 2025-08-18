@@ -24,12 +24,12 @@ function M.setup()
       local query = table.concat(vim.list_slice(args, 3), ' ')
 
       if not search_type then
-        logger.error 'Search type is required. Usage :Spotify search [song|album|artist|playlist] <query>'
+        logger.error 'Search type is required. Usage :Spotify play [song|album|artist|playlist] <query>'
         return
       end
 
       if not query or query == '' then
-        logger.error 'Search query is required. Usage :Spotify search [song|album|artist|playlist] <query>'
+        logger.error 'Search query is required. Usage :Spotify play [song|album|artist|playlist] <query>'
         return
       end
 
@@ -42,7 +42,20 @@ function M.setup()
         return
       end
 
-      require('smm.search').search(spotify_type, query)
+      ---@param result SMM_Artist|SMM_Album|SMM_Track|SMM_Playlist
+      ---@param result_type SMM_MediaType
+      local on_select = function(result, result_type)
+        logger.info('Playing %s: %s', result_type:gsub('^%l', string.upper), result.name)
+        require('smm.playback').play(result.uri)
+      end
+
+      require('smm.search.media').search(spotify_type, query, on_select)
+    elseif args[1] == 'next' then
+      require('smm.playback').next()
+    elseif args[1] == 'prev' then
+      require('smm.playback').previous()
+    elseif args[1] == 'change_device' then
+      require('smm.playback').transfer_playback()
     end
   end, {
     desc = 'Spotify related commands',

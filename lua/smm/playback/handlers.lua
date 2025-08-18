@@ -13,10 +13,11 @@ function M.create_sync_handler(on_playback_update)
   return function(callback)
     api.get_playback_state(function(playback_response, playback_headers, status_code)
       if status_code == 200 or status_code == 204 then
-        logger.debug('Playback Response: \n%s', vim.inspect(playback_response))
-        logger.debug('Playback Response headers: \n%s', vim.inspect(playback_headers))
+        -- logger.debug('Playback Response: \n%s', vim.inspect(playback_response))
+        -- logger.debug('Playback Response headers: \n%s', vim.inspect(playback_headers))
 
         local playback_info = utils.get_playbackinfo(playback_response)
+        logger.debug('Playback Info:\n%s', vim.inspect(playback_info))
 
         -- Notify manager of updated playback info
         if on_playback_update then
@@ -97,7 +98,7 @@ end
 
 ---Handles play/resume requests
 ---@param get_timer fun(): SMM_PlaybackTimer|nil
----@param update_playback_info fun(updates: table}
+---@param update_playback_info fun(updates: table)
 ---@return fun(context_uri: string|nil, offset: integer|nil, position_ms: integer|nil)
 function M.create_play_handler(get_timer, update_playback_info)
   return function(context_uri, offset, position_ms)
@@ -112,6 +113,56 @@ function M.create_play_handler(get_timer, update_playback_info)
         update_playback_info { playing = true }
       else
         logger.error('Unable to play track:\nStatus Code: %s\nError: %s', status_code, vim.inspect(resume_response))
+      end
+    end)
+  end
+end
+
+---Handles sending next request
+---@return fun()
+function M.create_next_handler()
+  return function()
+    api.next(function(next_response, next_headers, status_code)
+      if status_code == 200 or status_code == 204 then
+        logger.debug 'Successfully skipped to next track'
+      else
+        logger.error('Unable to skip to next track:\nStatus Code: %s\nError: %s', status_code, vim.inspect(next_response))
+      end
+    end)
+  end
+end
+
+---Handles sending previous request
+---@return fun()
+function M.create_previous_handler()
+  return function()
+    api.previous(function(previous_response, previous_headers, status_code)
+      if status_code == 200 or status_code == 204 then
+        logger.debug 'Successfully skipped to previous track'
+      else
+        logger.error('Unable to skip to previous track:\nStatus Code: %s\nError: %s', status_code, vim.inspect(previous_response))
+      end
+    end)
+  end
+end
+
+---Handles transferring playback to different devices
+---@param update_playback_info fun(updates: table)
+---@return fun()
+function M.create_transfer_playback_handler(update_playback_info)
+  return function()
+    require('smm.search.device').search(function(result)
+      if result and result.id then
+        api.transfer_playback_state(result.id, function(transfer_response, transfer_headers, status_code)
+          if status_code == 200 or status_code == 204 then
+            logger.debug('Successfully changed playback to ID: %s - %s', result.name, result.id)
+            update_playback_info {
+              device_id = result.id,
+            }
+          else
+            logger.error('Unable to transfer playback:\nStatus Code: %s\nError: %s', status_code, vim.inspect(transfer_response))
+          end
+        end)
       end
     end)
   end

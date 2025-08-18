@@ -3,6 +3,8 @@ local handlers = require 'smm.playback.handlers'
 local interface = require 'smm.playback.interface'
 local logger = require 'smm.utils.logger'
 
+---@alias SMM_PlaybackInfo { id: string, device_id?: string, context_uri: string, context_type?: string, context_offset?: integer, playlist?: SMM_Playlist, track: SMM_Track,  playing: boolean,  progress_ms: integer }
+
 local M = {}
 
 ---@type SMM_PlaybackInfo|nil
@@ -22,6 +24,15 @@ local pause_handler = nil
 
 ---@type function|nil
 local play_handler = nil
+
+---@type function|nil
+local next_handler = nil
+
+---@type function|nil
+local previous_handler = nil
+
+---@type function|nil
+local transfer_playback_handler = nil
 
 ---Updates playback_info with partial data
 ---@param updates table Partial updates to apply to playback_info
@@ -67,6 +78,9 @@ local function initialize_handlers()
   update_handler = handlers.create_update_handler(get_playback_info, on_interface_update)
   pause_handler = handlers.create_pause_handler(get_timer, update_playback_info)
   play_handler = handlers.create_play_handler(get_timer, update_playback_info)
+  next_handler = handlers.create_next_handler()
+  previous_handler = handlers.create_previous_handler()
+  transfer_playback_handler = handlers.create_transfer_playback_handler(update_playback_info)
 end
 
 ---Starts the timer and playback session
@@ -141,10 +155,35 @@ function M.play(context_uri, offset, position_ms)
 
   if play_handler then
     play_handler(context_uri, offset, position_ms)
+    vim.defer_fn(M.sync, 500)
   end
 end
 
----Force a sync with Spotify
+---Skip to next track
+function M.next()
+  if next_handler then
+    next_handler()
+    vim.defer_fn(M.sync, 500)
+  end
+end
+
+---Skip to previous track
+function M.previous()
+  if previous_handler then
+    previous_handler()
+    vim.defer_fn(M.sync, 500)
+  end
+end
+
+---Searches for a device and then transfers playback to that device
+function M.transfer_playback()
+  if transfer_playback_handler then
+    transfer_playback_handler()
+  end
+end
+
+--- Force a sync with Spotify
+--- Call this with a `vim.defer_fn(sync, 500)` to delay it right after an action occurs.
 function M.sync()
   if not timer then
     logger.error 'Playback session not active. Unable to sync'
@@ -153,11 +192,14 @@ function M.sync()
   logger.debug 'Syncing'
   if sync_handler then
     sync_handler(function(sync_data)
+      logger.debug('[TIMER] Sync callback received - has_data: %s', tostring(sync_data ~= nil))
       if sync_data then
         timer.current_pos = sync_data.current_pos
         timer.is_updating = sync_data.is_playing
+        logger.debug('[TIMER] Sync updated - pos: %d, playing: %s', sync_data.current_pos, tostring(sync_data.is_playing))
         timer.update(timer.current_pos)
       else
+        logger.debug '[TIMER] Sync returned nil, pausing timer'
         timer:pause()
         timer.update(nil)
       end

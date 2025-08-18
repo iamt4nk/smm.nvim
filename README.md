@@ -13,6 +13,10 @@ _**NOTE**_: This plugin does NOT stream any music itself, but rather it controls
 ![SMM Demo](./assets/smm_new_demo.gif)
 
 ### Installation:
+
+> [!WARNING]  
+> The following configurations are the defaults. Feel free to change any of these how you see fit. Do __*NOT*__ change any other configurations in the auth section you may find. They need to remain exactly how they are.  
+
 Use the following to install this plugin:  
 - LazyVim:  
 ```lua
@@ -43,6 +47,9 @@ Use the following to install this plugin:
    },
 },
 ```
+> [!NOTE]
+> Use the "nightly" branch for regular, _lightly tested_ updates.
+
 (Feel free to add a PR with instructions to install for your package manager.)
 
 #### Commands
@@ -51,11 +58,11 @@ There are a few other commands you can currently run if you are a Spotify Premiu
 - `:Spotify resume`: Resumes current song  
 - `:Spotify auth`: Re-authorizes with the Spotify app in case there are issues
 - `:Spotify play [artist|album|song|playlist] <query>`: Searches for the query and then starts playback from the selection.
-  
-> [!WARNING]  
-> The configuration above are the defaults. Feel free to change any of these how you see fit. Do __*NOT*__ change any other configurations in the auth section you may find. They need to remain exactly how they are.
+- `:Spotify change_device`: Changes the device spotify is currently playing on.
 
-_**NOTE**_: Use the "nightly" branch for regular, untested updates.
+> [!NOTE]
+> Spotify unfortunately does not allow starting a playback session from a device. Playback must initially start from the Spotify desktop/mobile/web app.  
+  
 
 
 ### Execution
