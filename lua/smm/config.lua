@@ -56,4 +56,9 @@ function M.get_value(key)
   return config[key]
 end
 
+---@param update table
+function M.update_config(update)
+  default_config = vim.tbl_deep_extend('force', default_config, update or {})
+end
+
 return M

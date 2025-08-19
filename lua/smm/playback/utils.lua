@@ -32,6 +32,10 @@ function M.get_playbackinfo(playback_response)
     }
   end
 
+  if not playback_response.item then
+    return nil
+  end
+
   -- Create Artist models from track's artists
   ---@type SMM_Artist[]
   local artists = {}
