@@ -9,18 +9,17 @@ local function convert_ms_to_timestamp(ms)
   return string.format('%d:%02d', minutes, seconds)
 end
 
--- TODO: Currently we don't have a way of displaying links in Neovim. Rough :(
----@param text string
----@param url string
-local function create_hyperlink(text, url)
-  return text
-  -- if not url or url == '' then
-  --   return text
-  -- end
-  -- -- https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda
-  -- -- OSC 8 hyperlink format: \033]8;;URL\033\\TEXT\033]8;;\033\\
-  -- return string.format([[\e]8;;]] .. '%s' .. [[\e\\]] .. '%s' .. [[\e]8;;\e\\]], text, url)
-end
+-- -- TODO: Currently we don't have a way of displaying links in Neovim. Rough :(
+-- ---@param text string
+-- ---@param url string
+-- local function create_hyperlink(text, url)
+--   if not url or url == '' then
+--     return text
+--   end
+--   -- https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda
+--   -- OSC 8 hyperlink format: \033]8;;URL\033\\TEXT\033]8;;\033\\
+--   return string.format([[\e]8;;]] .. '%s' .. [[\e\\]] .. '%s' .. [[\e]8;;\e\\]], text, url)
+-- end
 
 local M = {}
 
@@ -53,6 +52,17 @@ end
 function M.format_playback_lines(playback_info)
   local playback_lines = {}
 
+  local ARTIST_LABEL = 'Artist: '
+  local ALBUM_LABEL = 'Album: '
+  local TRACK_LABEL = 'Track: '
+  local CURRENT_MS_LABEL = 'Current: '
+  local DURATION_MS_LABEL = 'Duration: '
+
+  local ELLIPSES = '...'
+
+  local X_PADDING = 2
+  local Y_PADDING = 1
+
   if not playback_info then
     table.insert(playback_lines, 'No track currently playing')
   elseif playback_info.is_advertisement then
@@ -65,31 +75,39 @@ function M.format_playback_lines(playback_info)
     local progress_bar_width = config.get().progress_bar_width
     local playback_width = config.get().playback_width
 
-    local artist_text = create_hyperlink(track:get_primary_artist(), track.artists[1]:get_spotify_url())
-    if #artist_text > playback_width - 12 then
-      artist_text = artist_text:sub(1, playback_width - 15):match '^%s*(.-)%s*$' .. '...'
-    end
-    local track_text = create_hyperlink(track.name, track:get_spotify_url())
-    if #track_text > playback_width - 11 then
-      track_text = track_text:sub(1, playback_width - 14):match '^%s*(.-)%s*$' .. '...'
-    end
-    local album_text = create_hyperlink(track.album.name, track.album:get_spotify_url())
-    if #album_text > playback_width - 11 then
-      album_text = album_text:sub(1, playback_width - 14):match '^%s*(.-)%s*$' .. '...'
+    local artist_text = track:get_primary_artist()
+    if #artist_text > playback_width - (#ARTIST_LABEL + (X_PADDING * 2) + #ELLIPSES) then
+      artist_text = artist_text:sub(1, playback_width - (#ARTIST_LABEL + (X_PADDING * 2) + #ELLIPSES)) --- Truncates
+      artist_text = vim.trim(artist_text)
+      artist_text = artist_text .. '...'
     end
 
-    table.insert(playback_lines, 'Artist: ' .. artist_text)
-    table.insert(playback_lines, 'Album: ' .. album_text)
-    table.insert(playback_lines, 'Track: ' .. track_text)
-    table.insert(playback_lines, 'Current: ' .. convert_ms_to_timestamp(playback_info['progress_ms']))
-    table.insert(playback_lines, 'Duration: ' .. track:get_formatted_duration())
+    local track_text = track.name
+    if #track_text > playback_width - (#TRACK_LABEL + (X_PADDING * 2) + #ELLIPSES) then
+      track_text = track_text:sub(1, playback_width - (#TRACK_LABEL + (X_PADDING * 2) + #ELLIPSES))
+      track_text = vim.trim(track_text)
+      track_text = track_text .. '...'
+    end
+
+    local album_text = track.album.name
+    if #album_text > playback_width - (#ALBUM_LABEL + (X_PADDING * 2) + #ELLIPSES) then
+      album_text = album_text:sub(1, playback_width - (#ALBUM_LABEL + (X_PADDING * 2) + #ELLIPSES))
+      album_text = vim.trim(album_text)
+      album_text = album_text .. '...'
+    end
+
+    table.insert(playback_lines, ARTIST_LABEL .. artist_text)
+    table.insert(playback_lines, ALBUM_LABEL .. album_text)
+    table.insert(playback_lines, TRACK_LABEL .. track_text)
+    table.insert(playback_lines, CURRENT_MS_LABEL .. convert_ms_to_timestamp(playback_info['progress_ms']))
+    table.insert(playback_lines, DURATION_MS_LABEL .. track:get_formatted_duration())
 
     local progress = math.floor((playback_info['progress_ms'] / track.duration_ms) * progress_bar_width)
     local bar = '[' .. string.rep('=', progress) .. string.rep(' ', progress_bar_width - progress) .. ']'
     table.insert(playback_lines, bar)
   end
 
-  playback_lines = M.pad_lines(playback_lines, 1, 2, 1, 2)
+  playback_lines = M.pad_lines(playback_lines, Y_PADDING, X_PADDING, Y_PADDING, X_PADDING)
 
   return playback_lines
 end

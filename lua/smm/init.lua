@@ -1,6 +1,6 @@
 local logger = require 'smm.utils.logger'
 local spotify = require 'smm.spotify'
-local playback = require 'smm.playback.init'
+local playback = require 'smm.playback'
 local search = require 'smm.search'
 local config = require 'smm.config'
 local commands = require 'smm.commands'

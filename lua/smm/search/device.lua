@@ -88,7 +88,7 @@ function M.search(callback)
             end,
           },
           sorter = conf.generic_sorter {},
-          attach_mappings = function(prompt_bufnr, map)
+          attach_mappings = function(prompt_bufnr, _)
             actions.select_default:replace(function()
               actions.close(prompt_bufnr)
               local selection = action_state.get_selected_entry()

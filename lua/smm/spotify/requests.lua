@@ -30,26 +30,6 @@ local function check_session(auth_info)
   end
 end
 
--- ---@param api_func function
--- ---@param callback function
--- ---@param retry_count? integer
--- local function retry(api_func, callback, retry_count)
---   retry_count = retry_count or 1
---
---   if retry_count > M.api_retry_max then
---     logger.error('Max retries (%d) reached for API call', M.api_retry_max)
---     return
---   end
---
---   logger.debug('API Attempt: %d/%d', retry_count, M.api_retry_max)
---
---   vim.defer_fn(function()
---     api_func(function(response_body, response_headers, status_code)
---       callback(response_body, response_headers, status_code)
---     end)
---   end, M.api_retry_backoff)
--- end
-
 ---Generic API call wrapp[er that handles retry logic
 ---@param api_func function The API function to call
 ---@param callback function The callback to execute with results

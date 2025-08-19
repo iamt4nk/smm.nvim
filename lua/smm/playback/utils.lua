@@ -6,15 +6,52 @@ local Playlist = require('smm.models.playlist').Playlist
 
 local M = {}
 
+---@param artist_data table[]
+---@return SMM_Artist[]
+local function parse_artists(artist_data)
+  logger.debug 'Parsing artist data'
+  logger.debug('%s', vim.inspect(artist_data))
+  ---@type SMM_Artist[]
+  local artists = {}
+  for _, artist in ipairs(artist_data or {}) do
+    table.insert(artists, Artist:new(artist))
+  end
+
+  return artists
+end
+
+---@param album_data table
+---@return SMM_Album[]
+local function parse_album(album_data)
+  ---@type SMM_Album
+  local album = nil
+  if album_data then
+    album = Album:new(album_data)
+  end
+
+  return album
+end
+
+---@param track_data table
+---@param artists SMM_Artists[]
+---@param album SMM_Album
+---@return SMM_Track
+local function parse_track(track_data, artists, album)
+  ---@type SMM_Track
+  local track = nil
+  if track_data and artists and album then
+    track = Track:new(track_data)
+    track.artists = artists
+    track.album = album
+  end
+
+  return track
+end
+
 ---@param playback_response table|string
 ---@return SMM_PlaybackInfo|nil
 function M.get_playbackinfo(playback_response)
   logger.debug('Playback Response: %s', vim.inspect(playback_response))
-
-  -- API returns back `""` so we have to test for that if empty
-  if not playback_response or playback_response == '""' then
-    return nil
-  end
 
   if playback_response.currently_playing_type == 'ad' then
     logger.debug 'Advertisement detected'
@@ -32,33 +69,14 @@ function M.get_playbackinfo(playback_response)
     }
   end
 
-  if not playback_response.item then
+  -- API returns back `""` so we have to test for that if empty
+  if playback_response == '""' or not playback_response or not playback_response.item then
     return nil
   end
 
-  -- Create Artist models from track's artists
-  ---@type SMM_Artist[]
-  local artists = {}
-  for _, artist_data in ipairs(playback_response.item.artists or {}) do
-    table.insert(artists, Artist:new(artist_data))
-  end
-
-  logger.debug('Artists: %s', vim.inspect(artists))
-
-  -- Create Album model if album data exists
-  ---@type SMM_Album
-  local album = nil
-  if playback_response.item.album then
-    album = Album:new(playback_response.item.album)
-  end
-
-  logger.debug('Album: %s', vim.inspect(album))
-
-  -- Create Track model with the artists and album data
-  ---@type SMM_Track
-  local track = Track:new(playback_response.item)
-  track.artists = artists
-  track.album = album
+  local artists = parse_artists(playback_response.item.artists)
+  local album = parse_album(playback_response.item.album)
+  local track = parse_track(playback_response.item, artists, album)
 
   local context_uri = playback_response.context ~= vim.NIL and playback_response.context.uri or ''
   local context_type = nil

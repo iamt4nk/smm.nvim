@@ -31,8 +31,4 @@ function M.get()
   return config
 end
 
-function M.get_value(key)
-  return config[key]
-end
-
 return M

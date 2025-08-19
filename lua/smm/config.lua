@@ -6,7 +6,7 @@ local M = {}
 local default_config = {
   premium = true,
   debug = false,
-  -- file = '/home/klanum/smm_log.txt',
+  file = '/home/klanum/smm_log.txt',
 
   playback = {
     enabled = true,
@@ -40,11 +40,11 @@ function M.setup(user_config)
     user_config.debug = false
   end
 
-  logger.setup((user_config and user_config.debug) or default_config.debug)
-
   logger.debug('Default config: %s\n', vim.inspect(default_config))
   config = vim.tbl_deep_extend('force', default_config, user_config or {})
   logger.debug('Merged config: %s\n', vim.inspect(config))
+
+  logger.setup((user_config and user_config.debug) or default_config.debug, user_config.file)
 end
 
 ---@return SMM_Config

@@ -14,11 +14,11 @@ local function get_oauth_info()
 
   local query_table = {
     response_type = 'code',
-    client_id = config.get_value 'client_id',
-    scope = table.concat(config.get_value 'scope', ' '),
+    client_id = config.get().client_id,
+    scope = table.concat(config.get().scope, ' '),
     code_challenge_method = 'S256',
     code_challenge = code_challenge,
-    redirect_uri = config.get_value 'callback_url' .. ':' .. config.get_value 'callback_port',
+    redirect_uri = config.get().callback_url .. ':' .. config.get().callback_port,
     state = state,
   }
 
@@ -37,7 +37,7 @@ end
 
 function M.initiate_oauth_flow()
   local oauth_url, redirect_uri, code_verifier, state = get_oauth_info()
-  local port = config.get_value 'callback_port'
+  local port = config.get().callback_port
 
   os_utils.open_browser(oauth_url)
 
@@ -49,13 +49,14 @@ function M.initiate_oauth_flow()
 end
 
 ---@param refresh_token string
----@return SMM_AuthInfo
+---@return SMM_AuthInfo|nil
 function M.refresh_access_token(refresh_token)
   local auth_info = requests.refresh_access_token(refresh_token)
   if not auth_info then
     logger.error 'Unable to refresh token'
+    return
   end
-  return auth_info ---@diagnostic disable-line # We are never actually returning string|nil even though the linter thinks we are
+  return auth_info
 end
 
 return M

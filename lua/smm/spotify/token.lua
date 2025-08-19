@@ -1,12 +1,15 @@
-local utils = require 'smm.spotify.utils'
 local logger = require 'smm.utils.logger'
+
+local function get_spotify_state_path()
+  return vim.fn.stdpath 'state' .. '/spotify'
+end
 
 local M = {}
 
 ---@param refresh_token string
 ---@return boolean
 function M.save_refresh_token(refresh_token)
-  local spotify_dir = utils.get_spotify_state_path()
+  local spotify_dir = get_spotify_state_path()
   vim.fn.mkdir(spotify_dir, 'p')
 
   local refresh_token_path = spotify_dir .. '/refresh_token'
@@ -14,6 +17,7 @@ function M.save_refresh_token(refresh_token)
 
   if not file then
     logger.error('Unable to open file: %s for reading', refresh_token_path)
+    return false
   end
 
   file:write(refresh_token)
@@ -23,7 +27,7 @@ end
 
 ---@return string|nil
 function M.load_refresh_token()
-  local refresh_token_path = utils.get_spotify_state_path() .. '/refresh_token'
+  local refresh_token_path = get_spotify_state_path() .. '/refresh_token'
   logger.debug('Refresh Token Path: %s', refresh_token_path)
   local file = io.open(refresh_token_path, 'r')
   if not file then
@@ -40,8 +44,13 @@ function M.load_refresh_token()
 end
 
 function M.delete_refresh_token()
-  local refresh_token_path = utils.get_spotify_state_path() .. '/refresh_token'
+  local refresh_token_path = get_spotify_state_path() .. '/refresh_token'
   os.remove(refresh_token_path)
+end
+
+---@return string
+function M.get_spotify_state_path()
+  return vim.fn.stdpath 'state' .. '/spotify'
 end
 
 return M

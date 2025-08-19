@@ -1,7 +1,5 @@
 local logger = require 'smm.utils.logger'
-local spotify = require 'smm.spotify'
 local requests = require 'smm.spotify.requests'
-local playback = require 'smm.playback'
 local Track = require('smm.models.track').Track
 local Album = require('smm.models.album').Album
 local Artist = require('smm.models.artist').Artist
@@ -33,10 +31,7 @@ local function parse_search_results(search_response, search_type)
         table.insert(artists, Artist:new(artist_data))
       end
 
-      local album = nil
-      if item.album then
-        album = Album:new(item.album)
-      end
+      local album = Album:new(item.album)
 
       local track = Track:new(item)
       track.artists = artists
@@ -147,7 +142,7 @@ function M.search(search_type, query, callback)
             end,
           },
           sorter = conf.generic_sorter {},
-          attach_mappings = function(prompt_bufnr, map)
+          attach_mappings = function(prompt_bufnr, _)
             actions.select_default:replace(function()
               actions.close(prompt_bufnr)
               local selection = action_state.get_selected_entry()

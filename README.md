@@ -14,8 +14,6 @@ Spotify Apps that use the [Spotify Web API](https://developer.spotify.com/docume
 
 ### Installation:
 
-> [!WARNING]  
-> The following configurations are the defaults. Feel free to change any of these how you see fit. Do __*NOT*__ change any other configurations in the auth section you may find. They need to remain exactly how they are.  
 
 Use the following to install this plugin:  
 - LazyVim:  
@@ -41,9 +39,6 @@ Use the following to install this plugin:
       spotify = {
          api_retry_max = 3,               -- The number of times to retry before failing out.
          api_retry_backoff = 2000,
-         auth = {
-            premium = true,
-         },
       },
    },
 },
