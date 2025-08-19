@@ -21,11 +21,11 @@ Use the following to install this plugin:
 - LazyVim:  
 ```lua
 {
-    'iamt4nk/smm.nvim',
-    dependencies = {
-      'nvim-lua/plenary.nvim',
-      'nvim-telescope/telescope.nvim',
-    },
+   'iamt4nk/smm.nvim',
+   dependencies = {
+     'nvim-lua/plenary.nvim',
+     'nvim-telescope/telescope.nvim',
+   },
    config = {
       premium = true,
       playback = {
