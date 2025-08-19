@@ -3,7 +3,7 @@ local handlers = require 'smm.playback.handlers'
 local interface = require 'smm.playback.interface'
 local logger = require 'smm.utils.logger'
 
----@alias SMM_PlaybackInfo { id: string, device_id?: string, context_uri: string, context_type?: string, context_offset?: integer, playlist?: SMM_Playlist, track: SMM_Track,  playing: boolean,  progress_ms: integer }
+---@alias SMM_PlaybackInfo { id: string, device_id?: string, context_uri: string, context_type?: string, context_offset?: integer, playlist?: SMM_Playlist, track: SMM_Track, is_advertisement: boolean, playing: boolean,  progress_ms: integer }
 
 local M = {}
 

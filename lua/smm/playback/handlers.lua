@@ -64,6 +64,13 @@ function M.create_update_handler(get_playback_info, on_interface_update)
       return false
     end
 
+    -- Handle advertisements
+    if playback_info.is_advertisement then
+      playback_info.progress_ms = current_ms
+      on_interface_update(playback_info)
+      return false
+    end
+
     -- Check if track is near end - force sync
     if playback_info.progress_ms >= playback_info.track.duration_ms - END_SONG_BUFFER then
       return true
