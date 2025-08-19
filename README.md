@@ -1,3 +1,6 @@
+> [!CAUTION]
+> This repo is archived as Spotify has deemed it unnecesary to allow individual contributors to make their own apps. Rather, they believe that only other organizations should be able to publish full-access apps that utilize their API. [https://developer.spotify.com/documentation/web-api/concepts/quota-modes](https://developer.spotify.com/documentation/web-api/concepts/quota-modes). At this point, there's no use continuing developing on this. If you would like to clone this repo and register your own app, by all means go for it.
+
 # Spotify Music Manager - Neovim
 
 > [!WARNING]  
