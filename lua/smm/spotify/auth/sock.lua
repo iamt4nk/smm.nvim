@@ -31,16 +31,19 @@ local function server_response(title, desc)
     </html>]]
 end
 
+---@return string
 local function get_server_ok_authenticated()
   logger.debug 'Authentication Successful'
   return server_response('Authentication Successful!', 'You may now close this window')
 end
 
+---@return string
 local function get_server_ok_not_authenticated()
   logger.debug 'Authentication Denied'
   return server_response('Authentication Denied!', 'You will not be able to use SMM')
 end
 
+---@return string
 local function get_server_bad_request_csrf()
   logger.debug 'Authentication Failed. Possible security issue'
   return server_response('Authentication Failed', 'This could indicate a security issue')

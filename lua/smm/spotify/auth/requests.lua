@@ -18,7 +18,7 @@ function M.get_access_token(code, code_verifier, redirect_uri)
     code = code,
     redirect_uri = redirect_uri,
     grant_type = 'authorization_code',
-    client_id = config.get_value 'client_id',
+    client_id = config.get().client_id,
     code_verifier = code_verifier,
   }
 
@@ -51,7 +51,7 @@ function M.refresh_access_token(refresh_token)
   local body = {
     grant_type = 'refresh_token',
     refresh_token = refresh_token,
-    client_id = config.get_value 'client_id',
+    client_id = config.get().client_id,
   }
 
   local response_body, _, code = api_sync.send_post_request {

@@ -1,23 +1,37 @@
+local logger = require 'smm.utils.logger'
 local config = require 'smm.playback.interface.config'
 local utils = require 'smm.playback.interface.utils'
-local logger = require 'smm.utils.logger'
 
 local M = {}
 
+-- Local variables
+---@type integer
+local PLAYBACK_WIDTH
+
+---@type string
+local PLAYBACK_POS
+
+-- Setup function for configuration
+
 function M.setup(user_config)
   config.setup(user_config or {})
+
+  PLAYBACK_WIDTH = config.get().playback_width
+  PLAYBACK_POS = config.get().playback_pos
 end
+
+-------------------------------------
 
 ---@type boolean
 M.is_showing = false
 
----@type integer
+---@type integer|nil
 local buf = nil
 
 ---@type vim.api.keyset.win_config
 local win_opts = {}
 
----@type integer
+---@type integer|nil
 local win = nil
 
 ---@param width integer
@@ -25,7 +39,7 @@ local win = nil
 local function set_window_pos(width, height)
   local win_height = vim.o.lines
   local win_width = vim.o.columns
-  local win_pos = config.get().playback_pos
+  local win_pos = PLAYBACK_POS
 
   if win_pos == 'TopLeft' then
     win_opts['col'] = 2
@@ -80,7 +94,7 @@ function M.create_window()
     end
 
     vim.api.nvim_set_hl(0, 'SpotifyGreen', { fg = '#1ED760' })
-    vim.api.nvim_win_set_option(win, 'winhighlight', 'FloatTitle:SpotifyGreen,FloatBorder:SpotifyGreen')
+    vim.wo[win].winhighlight = 'FloatTitle:SpotifyGreen,FloatBorder:SpotifyGreen'
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   end)
 end
@@ -88,9 +102,13 @@ end
 ---@param playback_info SMM_PlaybackInfo|nil
 function M.update_window(playback_info)
   vim.schedule(function()
+    if not win or not buf then
+      logger.error 'Unable to update playback window - Does not exist'
+      return
+    end
     local lines = utils.format_playback_lines(playback_info)
 
-    local width = config.get().playback_width
+    local width = PLAYBACK_WIDTH
     local height = #lines
 
     win_opts['width'] = width
@@ -108,7 +126,6 @@ function M.remove_window()
     M.is_showing = false
     vim.api.nvim_win_close(win, true)
     win_opts = {}
-    info = nil
     win = nil
   end
 

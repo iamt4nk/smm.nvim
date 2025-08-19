@@ -187,6 +187,7 @@ end
 function M.sync()
   if not timer then
     logger.error 'Playback session not active. Unable to sync'
+    return
   end
 
   logger.debug 'Syncing'

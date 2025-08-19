@@ -71,6 +71,11 @@ function M.create_update_handler(get_playback_info, on_interface_update)
       return false
     end
 
+    if not playback_info.track then
+      on_interface_update(nil)
+      return false
+    end
+
     -- Check if track is near end - force sync
     if playback_info.progress_ms >= playback_info.track.duration_ms - END_SONG_BUFFER then
       return true

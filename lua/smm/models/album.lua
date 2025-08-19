@@ -4,7 +4,6 @@ local BaseMedia = require('smm.models.base').BaseMedia
 ---@field artists SMM_Artist[] Array of artists
 ---@field album_type string Type of album ('album', 'single', 'compilation')
 ---@field total_tracks integer Total number of tracks
----@field images table[] Array of image objects with url, width, height
 ---@field release_date string Release date (YYYY-MM-DD or YYYY)
 ---@field release_date_precision string Precision of release date ('year', 'month', 'day')
 ---@field genres string[] Array of genre strings
@@ -24,7 +23,6 @@ function Album:new(album_data)
   instance.artists = album_data.artists or {}
   instance.album_type = album_data.album_type or 'album'
   instance.total_tracks = album_data.total_tracks or 0
-  instance.images = album_data.images or {}
   instance.release_date = album_data.release_date or ''
   instance.release_date_precision = album_data.release_date_precision or 'day'
   instance.genres = album_data.genres or {}
@@ -39,23 +37,6 @@ end
 ---@return string
 function Album:get_primary_artist()
   return (#self.artists > 0) and self.artists[1].name or 'Unknown Artist'
-end
-
----@return string|nil -- URL of the largest available image
-function Album:get_cover_art_url()
-  if #self.images == 0 then
-    return nil
-  end
-
-  -- Return the largest image
-  local largest = self.images[1]
-  for _, image in ipairs(self.images) do
-    if image.width and largest.width and image.width > largest.width then
-      largest = image
-    end
-  end
-
-  return largest.url
 end
 
 ---@return string

@@ -4,7 +4,6 @@ local BaseMedia = require('smm.models.base').BaseMedia
 ---@field collaborative boolean
 ---@field description string|nil
 ---@field followers table
----@field images table[]
 ---@field owner table
 ---@field public boolean
 ---@field snapshot_id string
@@ -21,7 +20,6 @@ function Playlist:new(playlist_data)
   instance.collaborative = playlist_data.collaborative or false
   instance.description = playlist_data.description
   instance.followers = playlist_data.followers or { total = 0 }
-  instance.images = playlist_data.images or {}
   instance.owner = playlist_data.owner or {}
   instance.public = playlist_data.public
   instance.snapshot_id = playlist_data.snapshot_id or ''
@@ -44,23 +42,6 @@ end
 ---@return integer
 function Playlist:get_follower_count()
   return self.followers.total or 0
-end
-
----@return string|nil
-function Playlist:get_cover_image_url()
-  if #self.images == 0 then
-    return nil
-  end
-
-  -- Return the largest image
-  local largest = self.images[1]
-  for _, image in ipairs(self.images) do
-    if image.width and largest.width and image.width > largest.width then
-      largest = image
-    end
-  end
-
-  return largest.url
 end
 
 ---@return string

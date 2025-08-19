@@ -3,6 +3,7 @@ local config = require 'smm.config'
 
 local M = {}
 
+--- Local functions that interact with the app
 local function toggle_window()
   require('smm.playback').toggle_window()
 end
@@ -32,17 +33,17 @@ local function play(search_type, query)
     return
   end
 
-  if not query or query == '' then
-    logger.error 'Search query is required. Usage :Spotify play [song|album|artist|playlist] <query>'
-    return
-  end
-
   -- Validate search type
   local valid_types = { song = 'track', album = 'album', artist = 'artist', playlist = 'playlist' }
   local spotify_type = valid_types[search_type]
 
   if not spotify_type then
     logger.error('Invalid search type: %s. Valid types are: song, album, artist, playlist', search_type)
+    return
+  end
+
+  if not query or query == '' then
+    logger.error 'Search query is required. Usage :Spotify play [song|album|artist|playlist] <query>'
     return
   end
 
@@ -67,6 +68,8 @@ end
 local function change_device()
   require('smm.playback').transfer_playback()
 end
+
+--- End local functions
 
 ---@param opts table
 local function setup_premium(opts)

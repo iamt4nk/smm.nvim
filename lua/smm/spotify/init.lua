@@ -40,7 +40,7 @@ local function check_and_update_account_type()
             'Press <Esc> or :q to close this message',
           }
 
-          lines = require('smm.playback.interface.utils').pad_lines(lines, 1, 2, 1, 2)
+          lines = require('smm.playback.interface.utils').pad_lines(lines, 2, 4, 2, 4)
 
           local width = 100
           local height = #lines
