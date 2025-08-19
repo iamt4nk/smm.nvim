@@ -10,12 +10,29 @@ local M = {}
 ---@return SMM_PlaybackInfo|nil
 function M.get_playbackinfo(playback_response)
   logger.debug('Playback Response: %s', vim.inspect(playback_response))
-  if not playback_response or not playback_response.item then
+
+  -- API returns back `""` so we have to test for that if empty
+  if not playback_response or playback_response == '""' then
     return nil
   end
 
-  -- API returns back `""` so we have to test for that if empty
-  if playback_response == '""' then
+  if playback_response.currently_playing_type == 'ad' then
+    logger.debug 'Advertisement detected'
+
+    return {
+      id = 'advertisement',
+      device_id = playback_response.device and playback_response.device.id or nil,
+      context_uri = '',
+      context_type = 'advertisement',
+      playlist = nil,
+      track = nil,
+      playing = playback_response.is_playing,
+      progress_ms = playback_response.progress_ms,
+      is_advertisement = true,
+    }
+  end
+
+  if not playback_response.item then
     return nil
   end
 
@@ -71,6 +88,7 @@ function M.get_playbackinfo(playback_response)
     device_id = playback_response.device and playback_response.device.id or nil,
     context_uri = context_uri,
     context_type = context_type,
+    is_advertisement = false,
     playlist = playlist,
     track = track,
     playing = playback_response.is_playing,
