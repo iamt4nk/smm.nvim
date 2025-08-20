@@ -23,12 +23,7 @@ local default_config = {
     enabled = true,
     api_retry_max = 3,
     api_retry_backoff = 2000,
-    auth = {
-      enabled = true,
-      client_id = 'c43057d088204249bca8d5bde4e93bd3',
-      callback_url = 'http://127.0.0.1',
-      callback_port = 8080,
-    },
+    auth = {},
   },
 }
 

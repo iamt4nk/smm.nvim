@@ -17,8 +17,10 @@ Spotify Apps that use the [Spotify Web API](https://developer.spotify.com/docume
 
 ### Installation:
 
+Create an app for the Spotify API using: [this link](https://developer.spotify.com/documentation/web-api).
 
-Use the following to install this plugin:  
+Use the following configurations when installing this plugin:  
+
 - LazyVim:  
 ```lua
 {
@@ -29,6 +31,8 @@ Use the following to install this plugin:
    },
    config = {
       premium = true,
+      -- debug = true,                    -- These can be used in case there are any issues and you need to debug.
+      -- file = '/tmp/smm_debug.log'
       playback = {
          timer_update_interval = 250,     -- How often the timer itself is  updated in ms
          timer_sync_interval = 5000,      -- How often sync requests are sent to the server in ms
@@ -42,6 +46,11 @@ Use the following to install this plugin:
       spotify = {
          api_retry_max = 3,               -- The number of times to retry before failing out.
          api_retry_backoff = 2000,
+         auth = {                         -- These are the only absolutely required configurations.
+            client_id = '<your client id>',
+            callback_url = '<your callback URL>',
+            callback_port = '<your callback port>',
+         },
       },
    },
 },
