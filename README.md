@@ -55,9 +55,6 @@ Use the following configurations when installing this plugin:
    },
 },
 ```
-> [!NOTE]
-> Use the "nightly" branch for regular, _lightly tested_ updates.
-
 (Feel free to add a PR with instructions to install for your package manager.)
 
 ### Execution
