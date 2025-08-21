@@ -1,6 +1,5 @@
 local config = require 'smm.config'
 local logger = require 'smm.utils.logger'
-local socket = require 'socket'
 
 ---@param title string
 ---@param desc string
@@ -53,69 +52,98 @@ local M = {}
 
 ---@param port integer
 ---@param state string
----@return string code Verification Code
+---@return string oauth_code Verification Code
 function M.start_server(port, state)
   logger.debug('Starting HTTP server on port %d', port)
 
-  local server = assert(socket.bind('*', port))
+  local server = vim.uv.new_tcp()
   logger.debug 'Server started'
 
-  server:settimeout(60)
+  server:bind('127.0.0.1', port)
 
-  logger.debug 'Accepting requests to server'
+  local oauth_code = nil
+  local received = false
 
-  -- Try to accept a connection (non-blocking)
-  local client, err = server:accept()
-  local request = client:receive()
-  logger.debug 'Received request'
+  server:listen(128, function(err)
+    if err then
+      logger.error('Listen error: %s', err)
+      return
+    end
 
-  local error = request:match 'error=([^%s&]+)'
-  local code = request:match 'code=([^%s&]+)'
-  local returned_state = request:match 'state=([^%s]+)'
+    local client = vim.uv.new_tcp()
+    server:accept(client)
 
-  local response = ''
+    client:read_start(function(err, data)
+      if err then
+        logger.error('Read error: %s', err)
+        return
+      end
 
-  if state ~= returned_state then
-    response = string.format(
-      [[HTTP/1.2 400 Bad Request
+      if data and not received then
+        received = true
+
+        -- Parse the HTTP request
+        local request = data
+        local error = request:match 'error=([^%s&]+)'
+        oauth_code = request:match 'code=([^%s&]+)'
+        local returned_state = request:match 'state=([^%s]+)'
+
+        local response = ''
+
+        if state ~= returned_state then
+          response = string.format(
+            [[HTTP/1.2 400 Bad Request
 Content-Type: text/html
 
 %s]],
-      get_server_bad_request_csrf()
-    )
+            get_server_bad_request_csrf()
+          )
 
-    client:send(response)
-    client:close()
-    server:close()
-    logger.error 'CSRF state mismatch - this could indicate a security issue'
+          client:send(response)
+          client:close()
+          server:close()
+          logger.error 'CSRF state mismatch - this could indicate a security issue'
+        end
+
+        if error ~= nil then
+          response = string.format(
+            [[HTTP/1.2 200 OK
+Content-Type: text/html
+
+%s]],
+            get_server_ok_not_authenticated()
+          )
+          client:send(response)
+          client:close()
+          server:close()
+          logger.error 'Authentication denied - plugin not loaded'
+        else
+          response = string.format(
+            [[HTTP/1.2 200 OK
+Content-Type: text/html
+
+%s]],
+            get_server_ok_authenticated()
+          )
+          client:send(response)
+          client:close()
+          server:close()
+        end
+      end
+    end)
+  end)
+
+  -- Wait for the response (with timeout)
+  vim.wait(60000, function()
+    return oauth_code ~= nil
+  end, 250)
+
+  if oauth_code == nil then
+    logger.error 'Unable to authenticate. Server timed out'
+    return
   end
 
-  if error ~= nil then
-    response = string.format(
-      [[HTTP/1.2 200 OK
-Content-Type: text/html
-
-%s]],
-      get_server_ok_not_authenticated()
-    )
-    client:send(response)
-    client:close()
-    server:close()
-    logger.error 'Authentication denied - plugin not loaded'
-  else
-    response = string.format(
-      [[HTTP/1.2 200 OK
-Content-Type: text/html
-
-%s]],
-      get_server_ok_authenticated()
-    )
-    client:send(response)
-    client:close()
-    server:close()
-  end
-
-  return code
+  return oauth_code
 end
 
 return M

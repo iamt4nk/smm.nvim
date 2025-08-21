@@ -43,6 +43,10 @@ function M.initiate_oauth_flow()
 
   local oauth_code = sock.start_server(port, state)
 
+  if oauth_code == nil then
+    return
+  end
+
   local auth_info = requests.get_access_token(oauth_code, code_verifier, redirect_uri)
 
   return auth_info
