@@ -1,10 +1,4 @@
-> [!CAUTION]
-> This repo is archived as Spotify has deemed it unnecesary to allow individual contributors to make their own apps. Rather, they believe that only other organizations should be able to publish full-access apps that utilize their API. [https://developer.spotify.com/documentation/web-api/concepts/quota-modes](https://developer.spotify.com/documentation/web-api/concepts/quota-modes). At this point, there's no use continuing developing on this. If you would like to clone this repo and register your own app, by all means go for it.
-
 # Spotify Music Manager - Neovim
-
-> [!WARNING]  
-> This plugin is currently in beta, of which there are limited spots. To sign up for the beta program, sign up [here](https://www.surveymonkey.com/r/FQSSS57).  
 
 > [!CAUTION]  
 > Currently the Spotify API does not allow free users to make any changes to playback. If you are a free user. Then please note you will still be able to view playback. But you will be unable to make any playback changes directly via the app. Unfortunately, there is nothing I can do about that.
@@ -17,8 +11,13 @@ Spotify Apps that use the [Spotify Web API](https://developer.spotify.com/docume
 
 ### Installation:
 
-Create an app for the Spotify API using: [this link](https://developer.spotify.com/documentation/web-api).
+Very first step is creating a developer app with Spotify.
+1. Follow the steps in the [Spotify Documentation](https://developer.spotify.com/documentation/web-api) to create your own App.  
+1. Don't forget to add your account to the list of users in the "User Management" tab.  
 
+After this is created, then you can continue with installing the plugin on Neovim.
+
+#### Configuration
 Use the following configurations when installing this plugin:  
 
 - LazyVim:  
@@ -40,6 +39,7 @@ Use the following configurations when installing this plugin:
             playback_pos = 'BottomRight', -- Options { 'TopLeft', 'TopRight', 'BottomLeft', 'BottomRight' }
             playback_width = 40,          -- Width of the playback window
             progress_bar_width = 35,      -- Width of the progress bar
+            icons = true,                 -- Whether to use nerdfonts
          },
       },
 

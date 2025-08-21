@@ -127,9 +127,15 @@ function M.search(search_type, query, callback)
       local actions = require 'telescope.actions'
       local action_state = require 'telescope.actions.state'
 
+      local title = string.format(' Spotify %s Search: %s', search_type:gsub('^%l', string.upper), query)
+
+      if require('smm.playback.interface.config').get().icons == true then
+        title = '  ' .. title
+      end
+
       pickers
         .new({}, {
-          prompt_title = string.format('Spotify %s Search: %s', search_type:gsub('^%l', string.upper), query),
+          prompt_title = title,
           finder = finders.new_table {
             results = results,
             entry_maker = function(result)
