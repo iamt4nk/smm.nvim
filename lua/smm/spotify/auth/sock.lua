@@ -99,7 +99,7 @@ Content-Type: text/html
             get_server_bad_request_csrf()
           )
 
-          client:send(response)
+          client:write(response)
           client:close()
           server:close()
           logger.error 'CSRF state mismatch - this could indicate a security issue'
@@ -113,7 +113,7 @@ Content-Type: text/html
 %s]],
             get_server_ok_not_authenticated()
           )
-          client:send(response)
+          client:write(response)
           client:close()
           server:close()
           logger.error 'Authentication denied - plugin not loaded'
@@ -125,7 +125,7 @@ Content-Type: text/html
 %s]],
             get_server_ok_authenticated()
           )
-          client:send(response)
+          client:write(response)
           client:close()
           server:close()
         end
