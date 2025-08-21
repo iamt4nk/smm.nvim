@@ -6,7 +6,7 @@ local M = {}
 --- | 'BottomLeft'
 --- | 'BottomRight'
 
----@alias SMM_PlaybackInterfaceConfig { playback_pos: SMM_PlaybackWindowPosition, playback_width: integer, progress_bar_width: integer}
+---@alias SMM_PlaybackInterfaceConfig { playback_pos: SMM_PlaybackWindowPosition, playback_width: integer, progress_bar_width: integer, icons: boolean}
 
 ---@type SMM_PlaybackInterfaceConfig
 local config = {}

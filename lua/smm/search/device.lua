@@ -72,10 +72,16 @@ function M.search(callback)
     local actions = require 'telescope.actions'
     local action_state = require 'telescope.actions.state'
 
+    local title = ' Spotify Devices'
+
+    if require('smm.playback.interface.config').get().icons == true then
+      title = '  ' .. title
+    end
+
     vim.schedule(function()
       pickers
         .new({}, {
-          prompt_title = string.format 'Available Spotify Devices',
+          prompt_title = title,
           finder = finders.new_table {
             results = results,
             entry_maker = function(result)

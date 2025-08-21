@@ -64,6 +64,12 @@ function M.create_window()
     local width = 40
     local height = #lines
 
+    local title = ' Spotify '
+
+    if config.get().icons == true then
+      title = '  ' .. title
+    end
+
     win_opts = {
       relative = 'editor',
       width = width,
@@ -71,7 +77,7 @@ function M.create_window()
       anchor = 'NW',
       style = 'minimal',
       border = 'rounded',
-      title = ' Spotify ',
+      title = title,
       title_pos = 'left',
     }
 

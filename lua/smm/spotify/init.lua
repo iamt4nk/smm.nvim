@@ -55,6 +55,12 @@ local function check_and_update_account_type()
           local row = math.floor((ui.height - height) / 2)
           local col = math.floor((ui.width - width) / 2)
 
+          local title = ' Spotify Free Account Warning '
+
+          if require('smm.playback.interface.config').get().icons == true then
+            title = '  ' .. title
+          end
+
           local win = vim.api.nvim_open_win(buf, true, {
             relative = 'editor',
             width = width,
@@ -63,12 +69,12 @@ local function check_and_update_account_type()
             col = col,
             style = 'minimal',
             border = 'rounded',
-            title = ' SMM Free Account Warning ',
+            title = title,
             title_pos = 'center',
           })
 
           vim.api.nvim_set_hl(0, 'SpotifyGreen', { fg = '#1ED760' })
-          vim.api.nvim_win_set_option(win, 'winhighlight', 'FloatTitle:SpotifyGreen,FloatBorder:SpotifyGreen')
+          vim.wo[win].winhighlight = 'FloatTitle:SpotifyGreen,FloatBorder:SpotifyGreen'
 
           vim.keymap.set('n', '<ESC>', function()
             if vim.api.nvim_win_is_valid(win) then
