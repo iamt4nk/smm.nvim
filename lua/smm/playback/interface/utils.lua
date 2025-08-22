@@ -23,30 +23,6 @@ end
 
 local M = {}
 
----@param lines string[]
----@param top integer
----@param right integer
----@param bottom integer
----@param left integer
----@return string[]
-function M.pad_lines(lines, top, right, bottom, left)
-  local padded_lines = {}
-
-  for _ = 1, top do
-    table.insert(padded_lines, '')
-  end
-
-  for _, line in ipairs(lines) do
-    table.insert(padded_lines, string.rep(' ', left) .. line .. string.rep(' ', right))
-  end
-
-  for _ = 1, bottom do
-    table.insert(padded_lines, '')
-  end
-
-  return padded_lines
-end
-
 ---@param playback_info SMM_PlaybackInfo|nil
 ---@return string[]
 function M.format_playback_lines(playback_info)
