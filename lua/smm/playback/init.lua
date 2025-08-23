@@ -1,30 +1,34 @@
 local config = require 'smm.playback.config'
 local spotify = require 'smm.spotify'
 local manager = require 'smm.playback.manager'
-local interface = require 'smm.playback.interface'
 local logger = require 'smm.utils.logger'
+local utils = require 'smm.playback.utils'
+local Window = require('smm.models.ui.interface').Window
 
 local M = {}
+
+---@type SMM_UI_Window
+M.playback_window = nil
+
+---@param playback_info
+local function update_playback_window(playback_info)
+  if M.playback_window then
+    local lines = utils.format_playback_lines(playback_info)
+    M.playback_window:update_window(lines)
+  end
+end
 
 ---Module setup function
 ---@param user_config table|nil
 function M.setup(user_config)
   config.setup(user_config or {})
-
-  if not config.get().enabled then
-    logger.info 'Playback module not enabled. Skipping module registration'
-    return
-  end
-
-  logger.debug 'Initializing playback interface'
-  interface.setup(config.get().interface)
 end
 
 ---Toggle the playback window on/off
 function M.toggle_window()
-  if interface.is_showing then
+  if M.playback_window and M.playback_window.is_showing then
     logger.debug 'Hiding playback window'
-    interface.remove_window()
+    M.playback_window:close()
 
     if manager.is_session_active() then
       logger.debug 'Stopping session playback'
@@ -37,7 +41,13 @@ function M.toggle_window()
   spotify.authenticate()
 
   logger.debug 'Showing playback window'
-  interface.create_window()
+
+  local lines = { 'Loading Playback Information...' }
+  local width = config.get().playback_width
+  local height = #lines + 2
+  local position = config.get().playback_pos
+
+  M.playback_window = Window:new(' Spotify ', lines, width, height, position)
 
   logger.debug 'Starting playback session'
   manager.start_session()
@@ -119,6 +129,10 @@ end
 
 ---Transfer playback to another device
 function M.transfer_playback()
+  if not manager.is_session_active() then
+    logger.error 'Playback session not active. Unable to transfer session'
+  end
+
   manager.transfer_playback()
 end
 
@@ -133,5 +147,7 @@ end
 function M.is_active()
   return manager.is_session_active()
 end
+
+M.update_playback_window = update_playback_window
 
 return M

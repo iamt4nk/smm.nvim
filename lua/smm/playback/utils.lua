@@ -1,4 +1,5 @@
 local logger = require 'smm.utils.logger'
+local config = require 'smm.playback.config'
 local Track = require('smm.models.track').Track
 local Album = require('smm.models.album').Album
 local Artist = require('smm.models.artist').Artist
@@ -112,6 +113,78 @@ function M.get_playbackinfo(playback_response)
     playing = playback_response.is_playing,
     progress_ms = playback_response.progress_ms,
   }
+end
+
+---@param playback_info SMM_PlaybackInfo
+---@return string[]
+function M.format_playback_lines(playback_info)
+  local playback_lines = {}
+
+  local ARTIST_LABEL = 'Artist: '
+  local ALBUM_LABEL = 'Album: '
+  local TRACK_LABEL = 'Track: '
+  local CURRENT_MS_LABEL = 'Current: '
+  local DURATION_MS_LABEL = 'Duration: '
+
+  local ELLIPSES = '...'
+
+  local X_PADDING = 2
+  local Y_PADDING = 1
+
+  if not playback_info then
+    table.insert(playback_lines, 'No track currently playing')
+  elseif playback_info.is_advertisement then
+    table.insert(playback_lines, 'Advertisement currently playing')
+    table.insert(playback_lines, 'Progress: ' .. M.convert_ms_to_timestamp(playback_info.progress_ms))
+  elseif not playback_info.track then
+    table.insert(playback_lines, 'No track currently playing')
+  else
+    local track = playback_info.track
+    local progress_bar_width = config.get().progress_bar_width
+    local playback_width = config.get().playback_width
+
+    local artist_text = track:get_primary_artist()
+    if #artist_text > playback_width - (#ARTIST_LABEL + (X_PADDING * 2) + #ELLIPSES) then
+      artist_text = artist_text:sub(1, playback_width - (#ARTIST_LABEL + (X_PADDING * 2) + #ELLIPSES)) --- Truncates
+      artist_text = vim.trim(artist_text)
+      artist_text = artist_text .. '...'
+    end
+
+    local track_text = track.name
+    if #track_text > playback_width - (#TRACK_LABEL + (X_PADDING * 2) + #ELLIPSES) then
+      track_text = track_text:sub(1, playback_width - (#TRACK_LABEL + (X_PADDING * 2) + #ELLIPSES))
+      track_text = vim.trim(track_text)
+      track_text = track_text .. '...'
+    end
+
+    local album_text = track.album.name
+    if #album_text > playback_width - (#ALBUM_LABEL + (X_PADDING * 2) + #ELLIPSES) then
+      album_text = album_text:sub(1, playback_width - (#ALBUM_LABEL + (X_PADDING * 2) + #ELLIPSES))
+      album_text = vim.trim(album_text)
+      album_text = album_text .. '...'
+    end
+
+    table.insert(playback_lines, ARTIST_LABEL .. artist_text)
+    table.insert(playback_lines, ALBUM_LABEL .. album_text)
+    table.insert(playback_lines, TRACK_LABEL .. track_text)
+    table.insert(playback_lines, CURRENT_MS_LABEL .. M.convert_ms_to_timestamp(playback_info['progress_ms']))
+    table.insert(playback_lines, DURATION_MS_LABEL .. track:get_formatted_duration())
+
+    local progress = math.floor((playback_info['progress_ms'] / track.duration_ms) * progress_bar_width)
+    local bar = '[' .. string.rep('=', progress) .. string.rep(' ', progress_bar_width - progress) .. ']'
+    table.insert(playback_lines, bar)
+  end
+
+  return playback_lines
+end
+
+---@param ms integer
+---@return string
+function M.convert_ms_to_timestamp(ms)
+  local total_seconds = math.floor(ms / 1000)
+  local minutes = math.floor(total_seconds / 60)
+  local seconds = total_seconds % 60
+  return string.format('%d:%02d', minutes, seconds)
 end
 
 return M

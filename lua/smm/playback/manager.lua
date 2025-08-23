@@ -1,6 +1,5 @@
 local Timer = require('smm.playback.timer').Timer
 local handlers = require 'smm.playback.handlers'
-local interface = require 'smm.playback.interface'
 local logger = require 'smm.utils.logger'
 
 ---@alias SMM_PlaybackInfo { id: string, device_id?: string, context_uri: string, context_type?: string, context_offset?: integer, playlist?: SMM_Playlist, track: SMM_Track, is_advertisement: boolean, playing: boolean,  progress_ms: integer }
@@ -61,7 +60,10 @@ end
 ---Handles interface updates
 ---@param updated_playback_info SMM_PlaybackInfo|nil
 local function on_interface_update(updated_playback_info)
-  interface.update_window(updated_playback_info)
+  vim.schedule(function()
+    local playback = require 'smm.playback'
+    playback.update_playback_window(updated_playback_info)
+  end)
 end
 
 ---Handles playback info updates from sync handler

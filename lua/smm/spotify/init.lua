@@ -3,6 +3,7 @@ local token = require 'smm.spotify.token'
 local config = require 'smm.spotify.config'
 local logger = require 'smm.utils.logger'
 local requests = require 'smm.spotify.requests'
+local Window = require('smm.models.ui.interface').Window
 
 local M = {}
 
@@ -40,47 +41,19 @@ local function check_and_update_account_type()
             'Press <Esc> or :q to close this message',
           }
 
-          lines = require('smm.playback.interface.utils').pad_lines(lines, 2, 4, 2, 4)
-
           local width = 100
           local height = #lines
-
-          local buf = vim.api.nvim_create_buf(false, true)
-          vim.bo[buf].buftype = 'nofile'
-          vim.bo[buf].bufhidden = 'wipe'
-          vim.bo[buf].swapfile = false
-          vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-
-          local ui = vim.api.nvim_list_uis()[1]
-          local row = math.floor((ui.height - height) / 2)
-          local col = math.floor((ui.width - width) / 2)
-
           local title = ' Spotify Free Account Warning '
+          local position = 'Center'
 
-          if require('smm.playback.interface.config').get().icons == true then
-            title = '  ' .. title
-          end
-
-          local win = vim.api.nvim_open_win(buf, true, {
-            relative = 'editor',
-            width = width,
-            height = height,
-            row = row,
-            col = col,
-            style = 'minimal',
-            border = 'rounded',
-            title = title,
-            title_pos = 'center',
-          })
-
-          vim.api.nvim_set_hl(0, 'SpotifyGreen', { fg = '#1ED760' })
-          vim.wo[win].winhighlight = 'FloatTitle:SpotifyGreen,FloatBorder:SpotifyGreen'
+          local warning_window = Window:new(title, lines, width, height, position)
+          vim.api.nvim_set_current_win(warning_window.win)
 
           vim.keymap.set('n', '<ESC>', function()
-            if vim.api.nvim_win_is_valid(win) then
-              vim.api.nvim_win_close(win, true)
+            if vim.api.nvim_win_is_valid(warning_window.win) then
+              vim.api.nvim_win_close(warning_window.win, true)
             end
-          end, { buffer = buf })
+          end, { buffer = warning_window.buf })
         end)
       end
     else

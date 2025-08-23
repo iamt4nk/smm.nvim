@@ -1,22 +1,22 @@
 local logger = require 'smm.utils.logger'
 
----@alias SMM_Config { debug: boolean, file?: string, premium: boolean, playback: SMM_PlaybackConfig, spotify: SMM_SpotifyConfig }
+---@alias SMM_Config { debug: boolean, file?: string, premium: boolean, icons: boolean, playback: SMM_PlaybackConfig, spotify: SMM_SpotifyConfig }
 local M = {}
 
+---@type SMM_Config
 local default_config = {
   premium = true,
   debug = false,
   file = '/home/klanum/smm_log.txt',
+  icons = true,
 
   playback = {
     enabled = true,
     timer_update_interval = 100,
     timer_sync_interval = 5000,
-    interface = {
-      playback_pos = 'BottomRight', ---@type SMM_PlaybackWindowPosition
-      playback_width = 40,
-      progress_bar_width = 35,
-    },
+    playback_pos = 'BottomRight', ---@type SMM_WindowPos
+    playback_width = 45,
+    progress_bar_width = 35,
   },
 
   spotify = {
