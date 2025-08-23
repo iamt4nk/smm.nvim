@@ -36,6 +36,7 @@ end
 ---@field win integer
 ---@field buf integer
 ---@field win_opts vim.api.keyset.win_config
+---@field win_pos SMM_WindowPos
 ---@field title string
 ---@field lines string[]
 ---@field is_showing boolean
@@ -70,6 +71,8 @@ function Window:new(title, lines, width, height, position)
     title_pos = 'left',
   }
 
+  self.win_opts = win_opts
+
   self:set_window_pos(width, height, position)
 
   if not buf or not vim.api.nvim_buf_is_valid(buf) then
@@ -93,7 +96,7 @@ function Window:new(title, lines, width, height, position)
   local instance = {
     win = win,
     buf = buf,
-    win_opts = win_opts,
+    win_pos = position,
     title = title,
     lines = lines,
     is_showing = true,
@@ -137,6 +140,15 @@ function Window:update_window(lines)
     return
   end
 
+  local height = #lines + 2
+
+  lines = pad_lines(lines, 1, 2, 1, 2)
+
+  self.win_opts['height'] = height
+
+  self:set_window_pos(self.width, height, self.win_pos)
+
+  vim.api.nvim_win_set_config(self.win, self.win_opts)
   vim.api.nvim_buf_set_lines(self.buf, 0, -1, false, lines)
 end
 
