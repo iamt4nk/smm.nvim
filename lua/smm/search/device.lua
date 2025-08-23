@@ -74,7 +74,7 @@ function M.search(callback)
 
     local title = ' Spotify Devices'
 
-    if require('smm.playback.interface.config').get().icons == true then
+    if require('smm.config').get().icons == true then
       title = '  ' .. title
     end
 

@@ -10,6 +10,7 @@ local M = {}
 ---@param on_playback_update fun(sync_data: SMM_PlaybackInfo|nil, status_code: integer) callback to the timer with the appropriate data
 ---@return fun(callback: fun(sync_data: SMM_SyncData|nil))
 function M.create_sync_handler(on_playback_update)
+  -- We comment out debugging messages in this one, simply because the processing still takes time, and therefore could lead to extra resource exhaustion. Its not much but its a little
   return function(callback)
     api.get_playback_state(function(playback_response, playback_headers, status_code)
       if status_code == 200 or status_code == 204 then
@@ -25,13 +26,13 @@ function M.create_sync_handler(on_playback_update)
         end
 
         if playback_info and playback_info.progress_ms and playback_info.playing ~= nil then
-          logger.debug('Syncing: pos=%d, playing=%s', playback_info.progress_ms, playback_info.playing)
+          -- logger.debug('Syncing: pos=%d, playing=%s', playback_info.progress_ms, playback_info.playing)
           callback {
             current_pos = playback_info.progress_ms,
             is_playing = playback_info.playing,
           }
         else
-          logger.debug 'No playback data - calling timer back with nil'
+          -- logger.debug 'No playback data - calling timer back with nil'
           callback(nil)
         end
       elseif status_code >= 500 and status_code <= 510 then

@@ -15,7 +15,7 @@ local default_config = {
     timer_update_interval = 100,
     timer_sync_interval = 5000,
     playback_pos = 'BottomRight', ---@type SMM_WindowPos
-    playback_width = 40,
+    playback_width = 45,
     progress_bar_width = 35,
   },
 

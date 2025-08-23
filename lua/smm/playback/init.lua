@@ -3,15 +3,12 @@ local spotify = require 'smm.spotify'
 local manager = require 'smm.playback.manager'
 local logger = require 'smm.utils.logger'
 local utils = require 'smm.playback.utils'
-local Window = require('smm.models.interface').Window
+local Window = require('smm.models.ui.interface').Window
 
 local M = {}
 
 ---@type SMM_UI_Window
 M.playback_window = nil
-
----@type boolean
-local is_showing = false
 
 ---@param playback_info
 local function update_playback_window(playback_info)
@@ -32,7 +29,6 @@ function M.toggle_window()
   if M.playback_window and M.playback_window.is_showing then
     logger.debug 'Hiding playback window'
     M.playback_window:close()
-    is_showing = false
 
     if manager.is_session_active() then
       logger.debug 'Stopping session playback'
@@ -52,7 +48,6 @@ function M.toggle_window()
   local position = config.get().playback_pos
 
   M.playback_window = Window:new(' Spotify ', lines, width, height, position)
-  is_showing = true
 
   logger.debug 'Starting playback session'
   manager.start_session()
