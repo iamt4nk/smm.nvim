@@ -30,17 +30,17 @@ Use the following configurations when installing this plugin:
    },
    config = {
       premium = true,
+      icons = true,                       -- Whether to use nerdfonts
+      
       -- debug = true,                    -- These can be used in case there are any issues and you need to debug.
       -- file = '/tmp/smm_debug.log'
+
       playback = {
          timer_update_interval = 250,     -- How often the timer itself is  updated in ms
          timer_sync_interval = 5000,      -- How often sync requests are sent to the server in ms
-         interface = {
-            playback_pos = 'BottomRight', -- Options { 'TopLeft', 'TopRight', 'BottomLeft', 'BottomRight' }
-            playback_width = 40,          -- Width of the playback window
-            progress_bar_width = 35,      -- Width of the progress bar
-            icons = true,                 -- Whether to use nerdfonts
-         },
+         playback_pos = 'BottomRight',    -- Options { 'TopLeft', 'TopRight', 'BottomLeft', 'BottomRight' }
+         playback_width = 40,             -- Width of the playback window
+         progress_bar_width = 35,         -- Width of the progress bar
       },
 
       spotify = {
