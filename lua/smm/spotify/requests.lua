@@ -269,4 +269,28 @@ function M.transfer_playback_state(device_id, callback, retry_override)
   make_api_call(api_func, callback, retry_override)
 end
 
+--- Toggles playback shuffle state
+---@param state boolean
+---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
+---@param retry_override? boolean (Default: false)
+function M.change_shuffle_state(state, callback, retry_override)
+  local auth_info = require('smm.spotify').auth_info
+  check_session(auth_info)
+
+  if not check_scope(auth_info.scope, 'user-modify-playback-state') then
+    logger.error 'Unable to send API request: Toggle Playback Shuffle. - Permissions not available'
+    return
+  end
+
+  local query = {
+    state = state,
+  }
+
+  local api_func = function(api_callback)
+    api.put(base_url .. '/me/player/shuffle', nil, query, nil, auth_info.access_token, api_callback)
+  end
+
+  make_api_call(api_func, callback, retry_override)
+end
+
 return M

@@ -15,6 +15,15 @@ local function update_playback_window(playback_info)
   if M.playback_window then
     local lines = utils.format_playback_lines(playback_info)
     M.playback_window:update_window(lines)
+
+    local title = ' Spotify '
+    if playback_info.shuffle_state == true then
+      title = title .. 'S '
+    end
+
+    M.playback_window:__set_opts {
+      title = M.playback_window:__create_title(title),
+    }
   end
 end
 
@@ -46,8 +55,9 @@ function M.toggle_window()
   local width = config.get().playback_width
   local height = #lines + 2
   local position = config.get().playback_pos
+  local title = ' Spotify '
 
-  M.playback_window = Window:new(' Spotify ', lines, width, height, position)
+  M.playback_window = Window:new(title, lines, width, height, position)
 
   logger.debug 'Starting playback session'
   manager.start_session()
@@ -146,6 +156,15 @@ end
 ---@return boolean
 function M.is_active()
   return manager.is_session_active()
+end
+
+---Change shuffle state
+function M.change_shuffle_state()
+  if not manager.is_session_active() then
+    logger.error 'Playback session is not active. Unable to change shuffle state'
+  end
+
+  manager.change_shuffle_state()
 end
 
 M.update_playback_window = update_playback_window

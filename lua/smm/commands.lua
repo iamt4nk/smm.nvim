@@ -69,6 +69,10 @@ local function change_device()
   require('smm.playback').transfer_playback()
 end
 
+local function shuffle()
+  require('smm.playback').change_shuffle_state()
+end
+
 --- End local functions
 
 ---@param opts table
@@ -94,6 +98,8 @@ local function setup_premium(opts)
     prev()
   elseif args[1] == 'change_device' then
     change_device()
+  elseif args[1] == 'shuffle' then
+    shuffle()
   else
     logger.error 'Could not execute command. Usage: :Spotify [auth|pause|resume|play|next|prev|change_device] [opts]'
   end
