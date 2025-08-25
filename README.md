@@ -72,10 +72,13 @@ There are a few other commands you can currently run if you are a Spotify Premiu
 - `:Spotify auth`: Re-authorizes with the Spotify app in case there are issues
 - `:Spotify pause`: Pauses current song  
 - `:Spotify resume`: Resumes current song  
-- `:Spotify play [artist|album|song|playlist] <query>`: Searches for the query and then starts playback from the selection.
+- `:Spotify play (artist|album|song|playlist) <query>`: Searches for the query and then starts playback from the selection.
 - `:Spotify change_device`: Changes the device spotify is currently playing on.
 - `:Spotify next`: Skip to the next song (if available)
-- `:Spotify prev`: Go to the previous song (if available)
+- `:Spotify prev`: Go to the previous song (if available)S
+- `:Spotify shuffle`: Toggle the shuffle state. (This adds a "S" to the playback window title)
+- `:Spotify repeat [track|off]`: Changes the repeat state. No argument after repeat will repeat the entire context (album, artist, playlist, etc.)
+
 
 > [!NOTE]
 > Spotify unfortunately does not allow starting a playback session from a device. Playback must initially start from the Spotify desktop/mobile/web app. When switching to another device, the Spotify app must be open on that device before switching.

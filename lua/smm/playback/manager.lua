@@ -2,7 +2,7 @@ local Timer = require('smm.playback.timer').Timer
 local handlers = require 'smm.playback.handlers'
 local logger = require 'smm.utils.logger'
 
----@alias SMM_PlaybackInfo { id: string, device_id?: string, context_uri: string, context_type?: string, context_offset?: integer, playlist?: SMM_Playlist, track: SMM_Track, is_advertisement: boolean, playing: boolean,  progress_ms: integer }
+---@alias SMM_PlaybackInfo { id: string, device_id?: string, context_uri: string, context_type?: string, context_offset?: integer, playlist?: SMM_Playlist, track: SMM_Track, is_advertisement: boolean, playing: boolean,  progress_ms: integer, shuffle_state: boolean, repeat_state: string }
 
 local M = {}
 
@@ -32,6 +32,12 @@ local previous_handler = nil
 
 ---@type function|nil
 local transfer_playback_handler = nil
+
+---@type function|nil
+local shuffle_handler = nil
+
+---@type function|nil
+local repeat_handler = nil
 
 ---Updates playback_info with partial data
 ---@param updates table Partial updates to apply to playback_info
@@ -83,6 +89,8 @@ local function initialize_handlers()
   next_handler = handlers.create_next_handler()
   previous_handler = handlers.create_previous_handler()
   transfer_playback_handler = handlers.create_transfer_playback_handler(update_playback_info)
+  shuffle_handler = handlers.create_shuffle_handler(update_playback_info)
+  repeat_handler = handlers.create_repeat_handler(update_playback_info)
 end
 
 ---Starts the timer and playback session
@@ -207,6 +215,27 @@ function M.sync()
         timer.update(nil)
       end
     end)
+  end
+end
+
+---Change the shuffle state
+function M.change_shuffle_state()
+  local current_shuffle_state
+
+  if playback_info then
+    current_shuffle_state = playback_info.shuffle_state
+  end
+
+  if shuffle_handler then
+    shuffle_handler(not current_shuffle_state)
+  end
+end
+
+--- Change the repeat state
+---@param state 'off' | 'track' | 'context'
+function M.change_repeat_state(state)
+  if repeat_handler then
+    repeat_handler(state)
   end
 end
 

@@ -102,6 +102,7 @@ function M.get_playbackinfo(playback_response)
 
   logger.debug('Track: %s', vim.inspect(track))
 
+  ---@type SMM_PlaybackInfo
   return {
     id = playback_response.id,
     device_id = playback_response.device and playback_response.device.id or nil,
@@ -112,6 +113,8 @@ function M.get_playbackinfo(playback_response)
     track = track,
     playing = playback_response.is_playing,
     progress_ms = playback_response.progress_ms,
+    shuffle_state = playback_response.shuffle_state or false,
+    repeat_state = playback_response.repeat_state or 'off',
   }
 end
 
