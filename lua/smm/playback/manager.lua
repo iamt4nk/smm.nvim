@@ -36,6 +36,9 @@ local transfer_playback_handler = nil
 ---@type function|nil
 local shuffle_handler = nil
 
+---@type function|nil
+local repeat_handler = nil
+
 ---Updates playback_info with partial data
 ---@param updates table Partial updates to apply to playback_info
 local function update_playback_info(updates)
@@ -87,6 +90,7 @@ local function initialize_handlers()
   previous_handler = handlers.create_previous_handler()
   transfer_playback_handler = handlers.create_transfer_playback_handler(update_playback_info)
   shuffle_handler = handlers.create_shuffle_handler(update_playback_info)
+  repeat_handler = handlers.create_repeat_handler(update_playback_info)
 end
 
 ---Starts the timer and playback session
@@ -224,6 +228,14 @@ function M.change_shuffle_state()
 
   if shuffle_handler then
     shuffle_handler(not current_shuffle_state)
+  end
+end
+
+--- Change the repeat state
+---@param state 'off' | 'track' | 'context'
+function M.change_repeat_state(state)
+  if repeat_handler then
+    repeat_handler(state)
   end
 end
 

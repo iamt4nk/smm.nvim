@@ -73,6 +73,11 @@ local function shuffle()
   require('smm.playback').change_shuffle_state()
 end
 
+---@param state 'off' | 'track' | 'context'
+local function change_repeat_state(state)
+  require('smm.playback').change_repeat_state(state)
+end
+
 --- End local functions
 
 ---@param opts table
@@ -100,6 +105,16 @@ local function setup_premium(opts)
     change_device()
   elseif args[1] == 'shuffle' then
     shuffle()
+  elseif args[1] == 'repeat' then
+    if #args == 1 then
+      change_repeat_state 'context'
+    elseif args[2] == 'track' then
+      change_repeat_state 'track'
+    elseif args[2] == 'off' then
+      change_repeat_state 'off'
+    else
+      logger.error 'Could not execute command. Usage: :Spotify repeat [track|off]'
+    end
   else
     logger.error 'Could not execute command. Usage: :Spotify [auth|pause|resume|play|next|prev|change_device] [opts]'
   end

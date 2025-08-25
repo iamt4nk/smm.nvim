@@ -183,7 +183,7 @@ end
 
 ---Handles changing shuffle state
 ---@param update_playback_info fun(updates: table)
----@return fun(state)
+---@return fun(state: boolean)
 function M.create_shuffle_handler(update_playback_info)
   ---@param state boolean
   return function(state)
@@ -195,6 +195,24 @@ function M.create_shuffle_handler(update_playback_info)
         }
       else
         logger.error('Unable to change shuffle state:\nStatus Code: %s\nError: %s', status_code, vim.inspect(shuffle_response))
+      end
+    end)
+  end
+end
+
+---Handles changing repeat state
+---@param update_playback_info fun(updates: table)
+---@return fun(state: 'off' | 'track' | 'context')
+function M.create_repeat_handler(update_playback_info)
+  ---@param state 'off' | 'track' | 'context'
+  return function(state)
+    api.change_repeat_state(state, function(repeat_response, repeat_headers, status_code)
+      if status_code == 200 or status_code == 204 then
+        logger.debug('Successfully changed repeat state to: %s', state)
+        update_playback_info {
+          repeat_state = state,
+        }
+      else
       end
     end)
   end

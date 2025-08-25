@@ -14,16 +14,26 @@ M.playback_window = nil
 local function update_playback_window(playback_info)
   if M.playback_window then
     local lines = utils.format_playback_lines(playback_info)
-    M.playback_window:update_window(lines)
 
     local title = ' Spotify '
     if playback_info.shuffle_state == true then
-      title = title .. 'S '
+      title = title .. '- S '
     end
+
+    logger.debug('"%s"', playback_info.repeat_state)
+    if playback_info.repeat_state == 'context' then
+      title = title .. '- R '
+    elseif playback_info.repeat_state == 'track' then
+      title = title .. '- RT '
+    end
+
+    logger.debug('"%s"', title)
 
     M.playback_window:__set_opts {
       title = M.playback_window:__create_title(title),
     }
+
+    M.playback_window:update_window(lines)
   end
 end
 
@@ -162,9 +172,21 @@ end
 function M.change_shuffle_state()
   if not manager.is_session_active() then
     logger.error 'Playback session is not active. Unable to change shuffle state'
+    return
   end
 
   manager.change_shuffle_state()
+end
+
+---Change repeat state
+---@param state 'off' | 'track' | 'context'
+function M.change_repeat_state(state)
+  if not manager.is_session_active() then
+    logger.error 'Playback session is not active. Unable to change repeat state'
+    return
+  end
+
+  manager.change_repeat_state(state)
 end
 
 M.update_playback_window = update_playback_window
