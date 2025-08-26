@@ -47,14 +47,7 @@ local function play(search_type, query)
     return
   end
 
-  ---@param result SMM_Artist|SMM_Album|SMM_Track|SMM_Playlist
-  ---@param result_type SMM_MediaType
-  local on_select = function(result, result_type)
-    logger.info('Playing %s: %s', result_type:gsub('^%l', string.upper), result.name)
-    require('smm.playback').play(result.uri)
-  end
-
-  require('smm.search.media').search(spotify_type, query, on_select)
+  require('smm.playback').media_search(search_type, query)
 end
 
 local function next()

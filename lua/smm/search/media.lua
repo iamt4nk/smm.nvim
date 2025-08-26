@@ -11,7 +11,7 @@ local M = {}
 ---@param search_response table
 ---@param search_type string
 ---@return table[] -- Array of model objects
-local function parse_search_results(search_response, search_type)
+function M.parse_search_results(search_response, search_type)
   local results = {}
 
   if not search_response or not search_response[search_type .. 's'] then
@@ -92,76 +92,50 @@ local function format_result(result, search_type)
 end
 
 ---Search for different types of media
----@param search_type string The type to search for { 'track', 'album', 'artist', 'playlist' }
----@param query string The search query
+---@param search_results table[]
+---@param search_type string
 ---@param callback fun(result: SMM_Track|SMM_Album|SMM_Artist|SMM_Playlist, search_type: SMM_MediaType) Callback for when user selects result
-function M.search(search_type, query, callback)
-  -- Check if telescope is available
-  local has_telescope, _ = pcall(require, 'telescope')
-  if not has_telescope then
-    logger.error 'Telescope is required for search functionality. Please install nvim-telescope/telescope.nvim as a dependency'
-    return
+function M.show_results_window(search_results, search_type, callback)
+  -- Create Telescope picker
+  local pickers = require 'telescope.pickers'
+  local finders = require 'telescope.finders'
+  local conf = require('telescope.config').values
+  local actions = require 'telescope.actions'
+  local action_state = require 'telescope.actions.state'
+
+  local title = string.format(' Spotify %s Search: %s', search_type:gsub('^%l', string.upper), query)
+
+  if require('smm.config').get().icons == true then
+    title = '  ' .. title
   end
 
-  logger.debug('Searching for %s: "%s"', search_type, query)
-
-  -- Perform the search
-  requests.search(query, search_type, 20, 0, function(response_body, response_headers, status_code)
-    if status_code ~= 200 then
-      logger.error('Search failed. Status: %d, Response: %s', status_code, vim.inspect(response_body))
-      return
-    end
-
-    local results = parse_search_results(response_body, search_type)
-
-    if #results == 0 then
-      logger.info('No %ss found for query: "%s"', search_type, query)
-      return
-    end
-
-    vim.schedule(function()
-      -- Create Telescope picker
-      local pickers = require 'telescope.pickers'
-      local finders = require 'telescope.finders'
-      local conf = require('telescope.config').values
-      local actions = require 'telescope.actions'
-      local action_state = require 'telescope.actions.state'
-
-      local title = string.format(' Spotify %s Search: %s', search_type:gsub('^%l', string.upper), query)
-
-      if require('smm.config').get().icons == true then
-        title = '  ' .. title
-      end
-
-      pickers
-        .new({}, {
-          prompt_title = title,
-          finder = finders.new_table {
-            results = results,
-            entry_maker = function(result)
-              local display_text, ordinal_text = format_result(result, search_type)
-              return {
-                value = result,
-                display = display_text,
-                ordinal = ordinal_text,
-              }
-            end,
-          },
-          sorter = conf.generic_sorter {},
-          attach_mappings = function(prompt_bufnr, _)
-            actions.select_default:replace(function()
-              actions.close(prompt_bufnr)
-              local selection = action_state.get_selected_entry()
-              if selection and callback then
-                callback(selection.value, search_type)
-              end
-            end)
-            return true
-          end,
-        })
-        :find()
-    end)
-  end)
+  pickers
+    .new({}, {
+      prompt_title = title,
+      finder = finders.new_table {
+        results = search_results,
+        entry_maker = function(result)
+          local display_text, ordinal_text = format_result(result, search_type)
+          return {
+            value = result,
+            display = display_text,
+            ordinal = ordinal_text,
+          }
+        end,
+      },
+      sorter = conf.generic_sorter {},
+      attach_mappings = function(prompt_bufnr, _)
+        actions.select_default:replace(function()
+          actions.close(prompt_bufnr)
+          local selection = action_state.get_selected_entry()
+          if selection and callback then
+            callback(selection.value, search_type)
+          end
+        end)
+        return true
+      end,
+    })
+    :find()
 end
 
 return M

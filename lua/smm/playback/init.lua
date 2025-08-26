@@ -190,6 +190,16 @@ function M.change_repeat_state(state)
   manager.change_repeat_state(state)
 end
 
+---Search for and play media
+function M.media_search(search_type, query)
+  if not manager.is_session_active() then
+    logger.error 'Playback session is not active. Please start a session before controlling from SMM.nvim'
+    return
+  end
+
+  manager.search_media(query, search_type)
+end
+
 M.update_playback_window = update_playback_window
 
 return M

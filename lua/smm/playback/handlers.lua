@@ -1,6 +1,8 @@
 local api = require 'smm.spotify.requests'
 local utils = require 'smm.playback.utils'
 local logger = require 'smm.utils.logger'
+local media = require 'smm.search.media'
+local device = require 'smm.search.device'
 
 local M = {}
 
@@ -161,21 +163,17 @@ end
 
 ---Handles transferring playback to different devices
 ---@param update_playback_info fun(updates: table)
----@return fun()
+---@return fun(device: SMM_Device)
 function M.create_transfer_playback_handler(update_playback_info)
-  return function()
-    require('smm.search.device').search(function(result)
-      if result and result.id then
-        api.transfer_playback_state(result.id, function(transfer_response, transfer_headers, status_code)
-          if status_code == 200 or status_code == 204 then
-            logger.debug('Successfully changed playback to ID: %s - %s', result.name, result.id)
-            update_playback_info {
-              device_id = result.id,
-            }
-          else
-            logger.error('Unable to transfer playback:\nStatus Code: %s\nError: %s', status_code, vim.inspect(transfer_response))
-          end
-        end)
+  return function(selected_device)
+    api.transfer_playback_state(selected_device.id, function(transfer_response, transfer_headers, status_code)
+      if status_code == 200 or status_code == 204 then
+        logger.debug('Successfully changed playback to ID: %s - %s', selected_device.name, selected_device.id)
+        update_playback_info {
+          device_id = selected_device.id,
+        }
+      else
+        logger.error('Unable to transfer playback:\nStatus Code: %s\nError: %s', status_code, vim.inspect(transfer_response))
       end
     end)
   end
@@ -214,6 +212,67 @@ function M.create_repeat_handler(update_playback_info)
         }
       else
       end
+    end)
+  end
+end
+
+---Handles searching for and playing media
+---@param on_selected fun()
+---@return fun(search_type: string, query: string)
+function M.create_media_search_handler(on_selected)
+  return function(search_type, query)
+    local has_telescope, _ = pcall(require, 'telescope')
+    if not has_telescope then
+      logger.error 'Telescope is required for search functionality. Please install nvim-telescope/telescope.nvim as a dependency'
+      return
+    end
+    api.search(query, search_type, 20, 0, function(search_body, search_headers, status_code)
+      if status_code ~= 200 then
+        logger.error('Search failed. Status: %d, Response: %s', status_code, vim.inspect(search_body))
+        return
+      end
+
+      local results = search.parse_search_results(search_body, search_type)
+
+      if #results == 0 then
+        logger.info('No %s found for query: %s', search_type, query)
+        return
+      end
+
+      vim.schedule(function()
+        media.show_results_window(results, search_type, on_selected)
+      end)
+    end)
+  end
+end
+
+---Handles searching for and playing on separate devices
+---@param on_selected fun()
+---@return fun()
+function M.create_device_search_handler(on_selected)
+  return function()
+    local has_telescope, _ = pcall(require, 'telescope')
+    if not has_telescope then
+      logger.error 'Telescope is required for search functionality. Please install nvim-telescope/telescope.nvim as a dependency'
+      return
+    end
+
+    api.get_available_devices(function(device_response, device_headers, status_code)
+      if status_code ~= 200 then
+        logger.error('Search for device failed. Status: %d, Response: %s', status_code, vim.inspect(device_response))
+        return
+      end
+
+      local results = device.parse_search_results(device_response)
+
+      if #results == 0 then
+        logger.info 'No devices found. Please start a playback session from a device.'
+        return
+      end
+
+      vim.schedule(function()
+        device.show_results_window(results, on_selected)
+      end)
     end)
   end
 end
