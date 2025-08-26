@@ -14,26 +14,27 @@ M.playback_window = nil
 local function update_playback_window(playback_info)
   if M.playback_window then
     local lines = utils.format_playback_lines(playback_info)
-
-    local title = ' Spotify '
-    if playback_info.shuffle_state == true then
-      title = title .. '- S '
-    end
-
-    logger.debug('"%s"', playback_info.repeat_state)
-    if playback_info.repeat_state == 'context' then
-      title = title .. '- R '
-    elseif playback_info.repeat_state == 'track' then
-      title = title .. '- RT '
-    end
-
-    logger.debug('"%s"', title)
-
-    M.playback_window:__set_opts {
-      title = M.playback_window:__create_title(title),
-    }
-
     M.playback_window:update_window(lines)
+
+    if playback_info then
+      local title = ' Spotify '
+      if playback_info.shuffle_state == true then
+        title = title .. '- S '
+      end
+
+      logger.debug('"%s"', playback_info.repeat_state)
+      if playback_info.repeat_state == 'context' then
+        title = title .. '- R '
+      elseif playback_info.repeat_state == 'track' then
+        title = title .. '- RT '
+      end
+
+      logger.debug('"%s"', title)
+
+      M.playback_window:__set_opts {
+        title = M.playback_window:__create_title(title),
+      }
+    end
   end
 end
 
