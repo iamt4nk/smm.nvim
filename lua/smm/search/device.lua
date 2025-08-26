@@ -7,7 +7,7 @@ local M = {}
 ---Parse search results and convert to model objects
 ---@param search_response table
 ---@return SMM_Device[]  -- Array of device objects
-local function parse_search_results(search_response)
+function M.parse_search_results(search_response)
   local results = {}
 
   if not search_response then
@@ -40,74 +40,49 @@ local function format_result(result)
 end
 
 ---Search for available devices
+---@param results string[]
 ---@param callback fun(result_device: SMM_Device)
-function M.search(callback)
-  local has_telescope, _ = pcall(require, 'telescope')
+function M.show_results_window(results, callback)
+  -- Create Telescope picker
+  local pickers = require 'telescope.pickers'
+  local finders = require 'telescope.finders'
+  local conf = require('telescope.config').values
+  local actions = require 'telescope.actions'
+  local action_state = require 'telescope.actions.state'
 
-  if not has_telescope then
-    logger.error 'Telescope is required for search functionality. Please install nvim-telescope/telescope.nvim as a dependency'
-    return
+  local title = ' Spotify Devices'
+
+  if require('smm.config').get().icons == true then
+    title = '  ' .. title
   end
 
-  logger.debug 'Getting all devices'
-
-  --Perform the search
-  requests.get_available_devices(function(response_body, response_headers, status_code)
-    if status_code ~= 200 then
-      logger.error('Getting devices failed. Status: %d, Response: %s', status_code, vim.inspect(response_body))
-      return
-    end
-
-    local results = parse_search_results(response_body)
-
-    if #results == 0 then
-      logger.info 'No devices found'
-      return
-    end
-
-    -- Create Telescope picker
-    local pickers = require 'telescope.pickers'
-    local finders = require 'telescope.finders'
-    local conf = require('telescope.config').values
-    local actions = require 'telescope.actions'
-    local action_state = require 'telescope.actions.state'
-
-    local title = ' Spotify Devices'
-
-    if require('smm.config').get().icons == true then
-      title = '  ' .. title
-    end
-
-    vim.schedule(function()
-      pickers
-        .new({}, {
-          prompt_title = title,
-          finder = finders.new_table {
-            results = results,
-            entry_maker = function(result)
-              local display_text, ordinal_text = format_result(result)
-              return {
-                value = result,
-                display = display_text,
-                ordinal = ordinal_text,
-              }
-            end,
-          },
-          sorter = conf.generic_sorter {},
-          attach_mappings = function(prompt_bufnr, _)
-            actions.select_default:replace(function()
-              actions.close(prompt_bufnr)
-              local selection = action_state.get_selected_entry()
-              if selection and callback then
-                callback(selection.value)
-              end
-            end)
-            return true
-          end,
-        })
-        :find()
-    end)
-  end)
+  pickers
+    .new({}, {
+      prompt_title = title,
+      finder = finders.new_table {
+        results = results,
+        entry_maker = function(result)
+          local display_text, ordinal_text = format_result(result)
+          return {
+            value = result,
+            display = display_text,
+            ordinal = ordinal_text,
+          }
+        end,
+      },
+      sorter = conf.generic_sorter {},
+      attach_mappings = function(prompt_bufnr, _)
+        actions.select_default:replace(function()
+          actions.close(prompt_bufnr)
+          local selection = action_state.get_selected_entry()
+          if selection and callback then
+            callback(selection.value)
+          end
+        end)
+        return true
+      end,
+    })
+    :find()
 end
 
 return M

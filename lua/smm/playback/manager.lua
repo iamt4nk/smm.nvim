@@ -39,6 +39,12 @@ local shuffle_handler = nil
 ---@type function|nil
 local repeat_handler = nil
 
+---@type function|nil
+local media_search_handler = nil
+
+---@type function|nil
+local device_search_handler = nil
+
 ---Updates playback_info with partial data
 ---@param updates table Partial updates to apply to playback_info
 local function update_playback_info(updates)
@@ -80,17 +86,36 @@ local function on_playback_update(updated_playback_info, status_code)
   logger.debug('Manager received playback update: %s - Status Code: %d', updated_playback_info and vim.inspect(updated_playback_info) or nil, status_code)
 end
 
+---Handles playing media
+---@param result SMM_Artist|SMM_Album|SMM_Track|SMM_Playlist
+---@param result_type SMM_MediaType
+local on_select_media = function(result, result_type)
+  logger.info('Playing %s: %s', result_type:gsub('^%l', string.upper), result.name)
+  require('smm.playback').play(result.uri)
+end
+
+---Handles transferring device playback
+---@param result SMM_Device
+local on_select_device = function(result)
+  logger.info('Switching device playback to: %s', result.name)
+  if transfer_playback_handler then
+    transfer_playback_handler(result)
+  end
+end
+
 ---Initializes all handlers with their dependencies
 local function initialize_handlers()
   sync_handler = handlers.create_sync_handler(on_playback_update)
   update_handler = handlers.create_update_handler(get_playback_info, on_interface_update)
   pause_handler = handlers.create_pause_handler(get_timer, update_playback_info)
-  play_handler = handlers.create_play_handler(get_timer, update_playback_info)
   next_handler = handlers.create_next_handler()
   previous_handler = handlers.create_previous_handler()
-  transfer_playback_handler = handlers.create_transfer_playback_handler(update_playback_info)
   shuffle_handler = handlers.create_shuffle_handler(update_playback_info)
   repeat_handler = handlers.create_repeat_handler(update_playback_info)
+  play_handler = handlers.create_play_handler(get_timer, update_playback_info)
+  media_search_handler = handlers.create_media_search_handler(on_select_media)
+  transfer_playback_handler = handlers.create_transfer_playback_handler(update_playback_info)
+  device_search_handler = handlers.create_device_search_handler(on_select_device)
 end
 
 ---Starts the timer and playback session
@@ -187,8 +212,8 @@ end
 
 ---Searches for a device and then transfers playback to that device
 function M.transfer_playback()
-  if transfer_playback_handler then
-    transfer_playback_handler()
+  if device_search_handler then
+    device_search_handler()
   end
 end
 
@@ -236,6 +261,21 @@ end
 function M.change_repeat_state(state)
   if repeat_handler then
     repeat_handler(state)
+  end
+end
+
+--- Search for media and play it
+---@param query string
+---@param search_type string
+function M.search_media(query, search_type)
+  if media_search_handler then
+    media_search_handler(search_type, query)
+  end
+end
+
+--- Search for a device and transfer playback to it
+function M.search_device()
+  if device_search_handler then
   end
 end
 
