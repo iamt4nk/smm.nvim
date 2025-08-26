@@ -232,7 +232,7 @@ function M.create_media_search_handler(on_selected)
         return
       end
 
-      local results = search.parse_search_results(search_body, search_type)
+      local results = media.parse_search_results(search_body, search_type)
 
       if #results == 0 then
         logger.info('No %s found for query: %s', search_type, query)
