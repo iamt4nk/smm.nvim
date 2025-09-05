@@ -17,6 +17,8 @@ function M.setup(user_config)
       'user-read-currently-playing',
       'user-modify-playback-state',
       'user-read-private',
+      'user-library-modify',
+      'user-library-read',
     }
   else
     config.scope = {
