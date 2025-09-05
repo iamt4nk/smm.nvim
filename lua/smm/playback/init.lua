@@ -10,8 +10,8 @@ local M = {}
 ---@type SMM_UI_Window
 M.playback_window = nil
 
----@param playback_info
-local function update_playback_window(playback_info)
+---@param playback_info SMM_PlaybackInfo
+function M.update_playback_window(playback_info)
   if M.playback_window then
     local lines = utils.format_playback_lines(playback_info)
     M.playback_window:update_window(lines)
@@ -200,6 +200,24 @@ function M.media_search(search_type, query)
   manager.search_media(query, search_type)
 end
 
-M.update_playback_window = update_playback_window
+---like the current song
+function M.like_current_song()
+  if not manager.is_session_active() then
+    logger.error 'Unable to like current song. There is no session active'
+    return
+  end
+
+  manager.add_song_to_liked_songs()
+end
+
+---unlike the current song
+function M.unlike_current_song()
+  if not manager.is_session_active() then
+    logger.error 'Unable to like current song. There is no session active'
+    return
+  end
+
+  manager.remove_song_from_liked_songs()
+end
 
 return M

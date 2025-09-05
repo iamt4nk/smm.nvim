@@ -14,6 +14,11 @@ local function check_and_update_account_type()
     if status_code == 200 and response_body and response_body.product then
       local actual_account_type = response_body.product -- 'free' or 'premium'
 
+      if not response_body then
+        logger.error('User profile not retrieved\nStatus Code: %d\nError: %s', status_code, vim.inspect(response_body))
+        return
+      end
+
       local config_module = require 'smm.config'
       local current_config = config_module.get()
 

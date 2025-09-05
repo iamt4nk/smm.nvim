@@ -45,6 +45,12 @@ local media_search_handler = nil
 ---@type function|nil
 local device_search_handler = nil
 
+---@type function|nil
+local like_song_handler = nil
+
+---@type function|nil
+local unlike_song_handler = nil
+
 ---Updates playback_info with partial data
 ---@param updates table Partial updates to apply to playback_info
 local function update_playback_info(updates)
@@ -116,6 +122,8 @@ local function initialize_handlers()
   media_search_handler = handlers.create_media_search_handler(on_select_media)
   transfer_playback_handler = handlers.create_transfer_playback_handler(update_playback_info)
   device_search_handler = handlers.create_device_search_handler(on_select_device)
+  like_song_handler = handlers.create_add_liked_song_handler()
+  unlike_song_handler = handlers.create_delete_liked_song_handler()
 end
 
 ---Starts the timer and playback session
@@ -276,6 +284,23 @@ end
 --- Search for a device and transfer playback to it
 function M.search_device()
   if device_search_handler then
+    device_search_handler()
+  end
+end
+
+--- Add the current song to liked songs
+function M.add_song_to_liked_songs()
+  if like_song_handler then
+    current_id = playback_info.track.id
+    like_song_handler(current_id)
+  end
+end
+
+--- Remove the current song from liked songs
+function M.remove_song_from_liked_songs()
+  if unlike_song_handler then
+    current_id = playback_info.track.id
+    unlike_song_handler(current_id)
   end
 end
 

@@ -277,4 +277,32 @@ function M.create_device_search_handler(on_selected)
   end
 end
 
+---Handles adding a song to a user's liked songs
+---@return fun(id: string)
+function M.create_add_liked_song_handler()
+  ---@param id string
+  return function(id)
+    api.like_song(id, function(like_response, like_headers, status_code)
+      if status_code == 200 or status_code == 204 then
+        logger.debug 'Successfully liked track'
+        return
+      end
+    end)
+  end
+end
+
+---Handles deleting a song from a user's liked songs
+---@return fun(id: string)
+function M.create_delete_liked_song_handler()
+  ---@param id string
+  return function(id)
+    api.unlike_song(id, function(unlike_response, unlike_headers, status_code)
+      if status_code == 200 or status_code == 204 then
+        logger.debug 'Successfully liked track'
+        return
+      end
+    end)
+  end
+end
+
 return M

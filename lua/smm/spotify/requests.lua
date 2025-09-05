@@ -317,4 +317,56 @@ function M.change_repeat_state(state, callback, retry_override)
   make_api_call(api_func, callback, retry_override)
 end
 
+--- Saves a track to a user's liked tracks
+---@param id string
+---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
+---@param retry_override? boolean (Default: false)
+function M.like_song(id, callback, retry_override)
+  local auth_info = require('smm.spotify').auth_info
+  check_session(auth_info)
+
+  if not check_scope(auth_info.scope, 'user-library-modify') then
+    logger.error 'Unable to send API request: Save Track. - Permissions not available'
+    return
+  end
+
+  local headers = { ['Content-Type'] = 'application/json' }
+  local body = {
+    ---@type string[]
+    ids = { id },
+  }
+
+  local api_func = function(api_callback)
+    api.put(base_url .. '/me/tracks', headers, nil, body, auth_info.access_token, api_callback)
+  end
+
+  make_api_call(api_func, callback, retry_override)
+end
+
+--- Saves a track to a user's liked tracks
+---@param id string
+---@param callback fun(response_body: string|table, response_headers: table, status_code: integer)
+---@param retry_override? boolean (Default: false)
+function M.unlike_song(id, callback, retry_override)
+  local auth_info = require('smm.spotify').auth_info
+  check_session(auth_info)
+
+  if not check_scope(auth_info.scope, 'user-library-modify') then
+    logger.error 'Unable to send API request: Remove Track. - Permissions not available'
+    return
+  end
+
+  local headers = { ['Content-Type'] = 'application/json' }
+  local body = {
+    ---@type string[]
+    ids = { id },
+  }
+
+  local api_func = function(api_callback)
+    api.delete(base_url .. '/me/tracks', headers, nil, body, auth_info.access_token, api_callback)
+  end
+
+  make_api_call(api_func, callback, retry_override)
+end
+
 return M

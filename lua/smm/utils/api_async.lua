@@ -150,4 +150,42 @@ function M.put(url, headers, query, body, access_token, callback)
   })
 end
 
+--- Make a DELETE Request
+---@param url string The base URL
+---@param headers table? Optional Headers
+---@param query table? Optional Query
+---@param body table|string? Request body (will be encoded as JSON if Content-Type not specified)
+---@param access_token string Authorization Access Token
+---@param callback fun(response_body: table|string, response_headers: table, status_code: integer) Callback Function
+function M.delete(url, headers, query, body, access_token, callback)
+  local query_string = query and encoding.encode_table_as_query(query)
+  local body_data = ''
+
+  headers = prepare_headers(headers, access_token)
+
+  if body then
+    if type(body) == 'table' then
+      if headers['Content-Type'] and headers['Content-Type']:match 'application%/x-www-form-urlencoded' then
+        body_data = encoding.encode_table_as_query(body)
+      else
+        -- We default to JSON
+        headers['Content-Type'] = 'application/json'
+        body_data = encoding.encode_table_as_json(body)
+      end
+    else
+      body_data = body
+    end
+  end
+
+  -- logger.debug('Sending DELETE request: %s\nQuery: %s\nHeaders: %s\n Body: %s', url, vim.inspect(query), vim.inspect(headers), body_data)
+
+  curl.delete(query_string and (url .. '?' .. query_string) or url, {
+    headers = headers or {},
+    body = body_data,
+    callback = function(response)
+      callback(process_response(response))
+    end,
+  })
+end
+
 return M

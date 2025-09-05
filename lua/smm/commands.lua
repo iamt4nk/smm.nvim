@@ -47,7 +47,11 @@ local function play(search_type, query)
     return
   end
 
-  require('smm.playback').media_search(search_type, query)
+  require('smm.playback').media_search(spotify_type, query)
+end
+
+local function play_liked()
+  require('smm.playback').play('spotify:collection:tracks', 0, 0)
 end
 
 local function next()
@@ -71,6 +75,14 @@ local function change_repeat_state(state)
   require('smm.playback').change_repeat_state(state)
 end
 
+local function like_current_song()
+  require('smm.playback').like_current_song()
+end
+
+local function unlike_current_song()
+  require('smm.playback').unlike_current_song()
+end
+
 --- End local functions
 
 ---@param opts table
@@ -90,6 +102,12 @@ local function setup_premium(opts)
     local query = table.concat(vim.list_slice(args, 3), ' ')
 
     play(search_type, query)
+  elseif args[1] == 'play_liked' then
+    play_liked()
+  elseif args[1] == 'like_song' then
+    like_current_song()
+  elseif args[1] == 'unlike_song' then
+    unlike_current_song()
   elseif args[1] == 'next' then
     next()
   elseif args[1] == 'prev' then
@@ -109,7 +127,7 @@ local function setup_premium(opts)
       logger.error 'Could not execute command. Usage: :Spotify repeat [track|off]'
     end
   else
-    logger.error 'Could not execute command. Usage: :Spotify [auth|pause|resume|play|next|prev|change_device] [opts]'
+    logger.error 'Could not execute command. Usage: :Spotify [auth|pause|resume|play|next|prev|change_device|play_liked|like_song|unlike_song] [opts]'
   end
 end
 
