@@ -18,7 +18,7 @@ Very first step is creating a developer app with Spotify.
 After this is created, then you can continue with installing the plugin on Neovim.
 
 #### Configuration
-Use the following configurations when installing this plugin:  
+The following are the default configurations. The only required ones are the `spotify.auth` configurations:  
 
 - LazyVim:  
 ```lua
@@ -73,12 +73,15 @@ There are a few other commands you can currently run if you are a Spotify Premiu
 - `:Spotify pause`: Pauses current song  
 - `:Spotify resume`: Resumes current song  
 - `:Spotify play (artist|album|song|playlist) <query>`: Searches for the query and then starts playback from the selection.
-- `:Spotify change_device`: Changes the device spotify is currently playing on.
+- `:Spotify play liked`: Play songs from the list of the users liked songs.
+- `:Spotify like_song`: Add the current song to list of liked songs.
+- `:Spotify unlike_song`: Remove the current song from the list of liked songs.
+- `:Spotify select device`: Changes the device spotify is currently playing on.
 - `:Spotify next`: Skip to the next song (if available)
-- `:Spotify prev`: Go to the previous song (if available)S
+- `:Spotify prev`: Go to the previous song (if available)
 - `:Spotify shuffle`: Toggle the shuffle state. (This adds a "S" to the playback window title)
 - `:Spotify repeat [track|off]`: Changes the repeat state. No argument after repeat will repeat the entire context (album, artist, playlist, etc.)
 
 
 > [!NOTE]
-> Spotify unfortunately does not allow starting a playback session from a device. Playback must initially start from the Spotify desktop/mobile/web app. When switching to another device, the Spotify app must be open on that device before switching.
+> The Spotify API will allow you to select a specific device as long as the Spotify app is open on that device. If it is not then you will not be able to select anything.

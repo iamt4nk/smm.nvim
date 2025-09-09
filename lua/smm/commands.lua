@@ -29,7 +29,12 @@ end
 ---@param query string
 local function play(search_type, query)
   if not search_type then
-    logger.error 'Search type is required. Usage :Spotify play [song|album|artist|playlist] <query>'
+    logger.error 'Search type is required. Usage `:Spotify play [song|album|artist|playlist] <query>` or,\n`:Spotify play liked'
+    return
+  end
+
+  if search_type == 'liked' then
+    require('smm.playback').play('spotify:collection:tracks', 0, 0)
     return
   end
 
@@ -48,10 +53,6 @@ local function play(search_type, query)
   end
 
   require('smm.playback').media_search(spotify_type, query)
-end
-
-local function play_liked()
-  require('smm.playback').play('spotify:collection:tracks', 0, 0)
 end
 
 local function next()
@@ -102,8 +103,6 @@ local function setup_premium(opts)
     local query = table.concat(vim.list_slice(args, 3), ' ')
 
     play(search_type, query)
-  elseif args[1] == 'play_liked' then
-    play_liked()
   elseif args[1] == 'like_song' then
     like_current_song()
   elseif args[1] == 'unlike_song' then
@@ -112,8 +111,12 @@ local function setup_premium(opts)
     next()
   elseif args[1] == 'prev' then
     prev()
-  elseif args[1] == 'change_device' then
-    change_device()
+  elseif args[1] == 'select' then
+    if #args == 2 and args[2] == 'device' then
+      change_device()
+    else
+      logger.error 'Could not execute command. Usage: `:Spotify select device`'
+    end
   elseif args[1] == 'shuffle' then
     shuffle()
   elseif args[1] == 'repeat' then
@@ -124,10 +127,10 @@ local function setup_premium(opts)
     elseif args[2] == 'off' then
       change_repeat_state 'off'
     else
-      logger.error 'Could not execute command. Usage: :Spotify repeat [track|off]'
+      logger.error 'Could not execute command. Usage: :Spotify repeat `[track|off]`'
     end
   else
-    logger.error 'Could not execute command. Usage: :Spotify [auth|pause|resume|play|next|prev|change_device|play_liked|like_song|unlike_song] [opts]'
+    logger.error 'Could not execute command. Usage: `:Spotify [auth|pause|resume|play|next|prev|select|like_song|unlike_song] [opts]`'
   end
 end
 
@@ -140,7 +143,7 @@ local function setup_free(opts)
   elseif args[1] == 'auth' then
     auth()
   else
-    logger.error 'Could not execute command. Usage: :Spotify [auth]'
+    logger.error 'Could not execute command. Usage: `:Spotify [auth]`'
   end
 end
 
@@ -153,9 +156,13 @@ function M.setup()
         local args = vim.split(CmdLine, '%s+')
 
         if #args == 2 then
-          return { 'auth', 'pause', 'resume', 'play', 'change_device' }
-        elseif #args == 3 and args[2] == 'search' then
-          return { 'song', 'album', 'artist', 'playlist' }
+          return { 'auth', 'pause', 'resume', 'play', 'next', 'prev', 'select', 'like_song', 'unlike_song' }
+        elseif #args == 3 then
+          if args[2] == 'play' then
+            return { 'song', 'album', 'artist', 'playlist', 'liked' }
+          elseif args[2] == 'select' then
+            return { 'device' }
+          end
         end
         return {}
       end,
