@@ -25,6 +25,25 @@ local function auth()
   token.save_refresh_token(auth_info.refresh_token)
 end
 
+---@return string
+local function get_usage()
+  return [[
+    Usage: `:Spotify (command) [options]
+    
+    Commands:
+      help - displays this usage message
+      auth - Re-initiate a new authorization flow. Can be used for switching accounts or getting a new authorization token
+      pause - Pause the current song
+      resume - resume the current song from the current position
+      play [ song | album | artist | playlist | liked ] - Plays the given context
+      next - skips to the next song in the given context
+      prev - skips to the previous song in the given context
+      select device - opens a menu to select which device to play on. Can be run to start a playback session.
+      like_song - adds the current song to liked songs
+      unlike_song - removes the current song from liked songs
+  ]]
+end
+
 ---@param search_type string
 ---@param query string
 local function play(search_type, query)
@@ -92,6 +111,8 @@ local function setup_premium(opts)
 
   if #args == 0 then
     toggle_window()
+  elseif args[1] == 'help' then
+    logger.info(get_usage())
   elseif args[1] == 'pause' then
     pause()
   elseif args[1] == 'resume' then
@@ -130,7 +151,7 @@ local function setup_premium(opts)
       logger.error 'Could not execute command. Usage: :Spotify repeat `[track|off]`'
     end
   else
-    logger.error 'Could not execute command. Usage: `:Spotify [auth|pause|resume|play|next|prev|select|like_song|unlike_song] [opts]`'
+    logger.error('Could not execute command.' .. get_usage())
   end
 end
 
