@@ -97,6 +97,20 @@ function Timer:reset()
   self.current_pos = 0
 end
 
+function Timer:force_sync()
+  if not self.sync then return end
+  self.sync(function(sync_data)
+    if sync_data then
+      self.current_pos = sync_data.current_pos
+      self.is_updating = sync_data.is_playing
+      self.update(self.current_pos)
+    else
+      self:pause()
+      self.update(nil)
+    end
+  end)
+end
+
 function Timer:close()
   self:pause()
   self:reset()

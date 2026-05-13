@@ -157,6 +157,15 @@ function M.stop_session()
   update_handler = nil
   pause_handler = nil
   play_handler = nil
+  next_handler = nil
+  previous_handler = nil
+  transfer_playback_handler = nil
+  shuffle_handler = nil
+  repeat_handler = nil
+  media_search_handler = nil
+  device_search_handler = nil
+  like_song_handler = nil
+  unlike_song_handler = nil
 end
 
 ---Checks if session is running
@@ -234,21 +243,7 @@ function M.sync()
   end
 
   logger.debug 'Syncing'
-  if sync_handler then
-    sync_handler(function(sync_data)
-      logger.debug('[TIMER] Sync callback received - has_data: %s', tostring(sync_data ~= nil))
-      if sync_data then
-        timer.current_pos = sync_data.current_pos
-        timer.is_updating = sync_data.is_playing
-        logger.debug('[TIMER] Sync updated - pos: %d, playing: %s', sync_data.current_pos, tostring(sync_data.is_playing))
-        timer.update(timer.current_pos)
-      else
-        logger.debug '[TIMER] Sync returned nil, pausing timer'
-        timer:pause()
-        timer.update(nil)
-      end
-    end)
-  end
+  timer:force_sync()
 end
 
 ---Change the shuffle state
@@ -291,7 +286,7 @@ end
 --- Add the current song to liked songs
 function M.add_song_to_liked_songs()
   if like_song_handler then
-    current_id = playback_info.track.id
+    local current_id = playback_info.track.id
     like_song_handler(current_id)
   end
 end
@@ -299,7 +294,7 @@ end
 --- Remove the current song from liked songs
 function M.remove_song_from_liked_songs()
   if unlike_song_handler then
-    current_id = playback_info.track.id
+    local current_id = playback_info.track.id
     unlike_song_handler(current_id)
   end
 end
