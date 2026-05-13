@@ -10,11 +10,66 @@ local M = {}
 ---@type SMM_UI_Window
 M.playback_window = nil
 
+local ns_id = vim.api.nvim_create_namespace 'smm_track_link'
+
+-- Line positions in the padded buffer (0-indexed):
+-- 0=top_pad, 1=artist, 2=album, 3=track
+local ARTIST_LINE = 1
+local ALBUM_LINE = 2
+local TRACK_LINE = 3
+local LEFT_PAD = 2
+
+local function set_link(buf, line_nr, url)
+  local line = vim.api.nvim_buf_get_lines(buf, line_nr, line_nr + 1, false)[1] or ''
+  local name_start = select(2, line:find(': ', 1, true)) or LEFT_PAD
+  local end_col = #line:match('^(.-)%s*$')
+  vim.api.nvim_buf_set_extmark(buf, ns_id, line_nr, name_start, {
+    end_row = line_nr,
+    end_col = end_col,
+    hl_group = 'SMMTrackLink',
+    url = url,
+  })
+end
+
+---@param buf integer
+---@param playback_info SMM_PlaybackInfo|nil
+local function setup_track_link(buf, playback_info)
+  vim.api.nvim_buf_clear_namespace(buf, ns_id, 0, -1)
+
+  if not playback_info or not playback_info.track then
+    return
+  end
+
+  local track = playback_info.track
+
+  vim.api.nvim_set_hl(0, 'SMMTrackLink', { fg = '#1ED760', underdotted = true })
+
+  local artist_url = track.artists[1] and track.artists[1]:get_spotify_url() or ''
+  if artist_url ~= '' then
+    set_link(buf, ARTIST_LINE, artist_url)
+  end
+
+  local album_url = track.album and track.album:get_spotify_url() or ''
+  if album_url ~= '' then
+    set_link(buf, ALBUM_LINE, album_url)
+  end
+
+  local track_url = track:get_spotify_url()
+  if track_url ~= '' then
+    set_link(buf, TRACK_LINE, track_url)
+  end
+end
+
 ---@param playback_info SMM_PlaybackInfo
 function M.update_playback_window(playback_info)
   if M.playback_window then
     local lines = utils.format_playback_lines(playback_info)
     M.playback_window:update_window(lines)
+    if config.get().song_links then
+      setup_track_link(M.playback_window.buf, playback_info)
+    else
+      vim.api.nvim_buf_clear_namespace(M.playback_window.buf, ns_id, 0, -1)
+    end
 
     if playback_info then
       local title = ' Spotify '

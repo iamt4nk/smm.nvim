@@ -41,6 +41,7 @@ The following are the default configurations. The only required ones are the `sp
          playback_pos = 'BottomRight',    -- Options { 'TopLeft', 'TopRight', 'BottomLeft', 'BottomRight' }
          playback_width = 40,             -- Width of the playback window
          progress_bar_width = 35,         -- Width of the progress bar
+         song_links = true,               -- Show clickable links for track, album, and artist
       },
 
       spotify = {

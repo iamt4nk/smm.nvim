@@ -17,6 +17,7 @@ local default_config = {
     playback_pos = 'BottomRight', ---@type SMM_WindowPos
     playback_width = 45,
     progress_bar_width = 35,
+    song_links = true,
   },
 
   spotify = {
