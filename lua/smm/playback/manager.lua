@@ -243,21 +243,7 @@ function M.sync()
   end
 
   logger.debug 'Syncing'
-  if sync_handler then
-    sync_handler(function(sync_data)
-      logger.debug('[TIMER] Sync callback received - has_data: %s', tostring(sync_data ~= nil))
-      if sync_data then
-        timer.current_pos = sync_data.current_pos
-        timer.is_updating = sync_data.is_playing
-        logger.debug('[TIMER] Sync updated - pos: %d, playing: %s', sync_data.current_pos, tostring(sync_data.is_playing))
-        timer.update(timer.current_pos)
-      else
-        logger.debug '[TIMER] Sync returned nil, pausing timer'
-        timer:pause()
-        timer.update(nil)
-      end
-    end)
-  end
+  timer:force_sync()
 end
 
 ---Change the shuffle state
