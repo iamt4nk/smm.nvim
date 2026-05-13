@@ -20,6 +20,7 @@ local TRACK_LINE = 3
 local LEFT_PAD = 2
 
 local last_track_id = nil
+local last_title = nil
 local cached_links = nil
 
 -- Reads buffer line to compute extmark positions, sets the extmark, and returns
@@ -102,18 +103,18 @@ function M.update_playback_window(playback_info)
         title = title .. '- S '
       end
 
-      logger.debug('"%s"', playback_info.repeat_state)
       if playback_info.repeat_state == 'context' then
         title = title .. '- R '
       elseif playback_info.repeat_state == 'track' then
         title = title .. '- RT '
       end
 
-      logger.debug('"%s"', title)
-
-      M.playback_window:__set_opts {
-        title = M.playback_window:__create_title(title),
-      }
+      if title ~= last_title then
+        last_title = title
+        M.playback_window:__set_opts {
+          title = M.playback_window:__create_title(title),
+        }
+      end
     end
   end
 end
@@ -130,6 +131,7 @@ function M.toggle_window()
     logger.debug 'Hiding playback window'
     M.playback_window:close()
     last_track_id = nil
+    last_title = nil
     cached_links = nil
 
     if manager.is_session_active() then
