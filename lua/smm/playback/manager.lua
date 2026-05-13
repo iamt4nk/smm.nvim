@@ -157,6 +157,15 @@ function M.stop_session()
   update_handler = nil
   pause_handler = nil
   play_handler = nil
+  next_handler = nil
+  previous_handler = nil
+  transfer_playback_handler = nil
+  shuffle_handler = nil
+  repeat_handler = nil
+  media_search_handler = nil
+  device_search_handler = nil
+  like_song_handler = nil
+  unlike_song_handler = nil
 end
 
 ---Checks if session is running
