@@ -300,7 +300,7 @@ end
 --- Add the current song to liked songs
 function M.add_song_to_liked_songs()
   if like_song_handler then
-    current_id = playback_info.track.id
+    local current_id = playback_info.track.id
     like_song_handler(current_id)
   end
 end
@@ -308,7 +308,7 @@ end
 --- Remove the current song from liked songs
 function M.remove_song_from_liked_songs()
   if unlike_song_handler then
-    current_id = playback_info.track.id
+    local current_id = playback_info.track.id
     unlike_song_handler(current_id)
   end
 end
