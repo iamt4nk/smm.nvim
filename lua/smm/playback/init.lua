@@ -42,8 +42,6 @@ local function setup_track_link(buf, playback_info)
 
   local track = playback_info.track
 
-  vim.api.nvim_set_hl(0, 'SMMTrackLink', { fg = '#1ED760', underdotted = true })
-
   local artist_url = track.artists[1] and track.artists[1]:get_spotify_url() or ''
   if artist_url ~= '' then
     set_link(buf, ARTIST_LINE, artist_url)
@@ -124,6 +122,7 @@ function M.toggle_window()
   local title = ' Spotify '
 
   M.playback_window = Window:new(title, lines, width, height, position)
+  vim.api.nvim_set_hl(0, 'SMMTrackLink', { fg = '#1ED760', underdotted = true })
 
   logger.debug 'Starting playback session'
   manager.start_session()
